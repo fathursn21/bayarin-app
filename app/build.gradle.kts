@@ -41,6 +41,10 @@ android {
 }
 
 dependencies {
+    val nav_version = "2.9.8"
+
+    implementation("androidx.navigation:navigation-compose:$nav_version")
+
     implementation(platform("com.google.firebase:firebase-bom:34.12.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-database")
@@ -61,4 +65,6 @@ dependencies {
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     debugImplementation(libs.androidx.compose.ui.tooling)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
 }
