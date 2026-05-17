@@ -54,6 +54,14 @@ class RegisterViewModel : ViewModel() {
         userTypePassword = userType
     }
 
+    fun updateVisiblePassword(status : Boolean){
+        _uiState.update { currentState ->
+            currentState.copy(
+                passwordVisible = status
+            )
+        }
+    }
+
     fun regiterUser(userName : String, userEmail : String, userTelp : String, userPassword : String){
         if (userName.isNotEmpty() && userEmail.isNotEmpty() && userTelp.isNotEmpty()){
 

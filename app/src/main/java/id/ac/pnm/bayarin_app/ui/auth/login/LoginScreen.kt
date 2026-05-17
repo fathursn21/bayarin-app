@@ -1,5 +1,6 @@
 package id.ac.pnm.bayarin_app.ui.auth.login
 
+import android.graphics.drawable.Icon
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,7 +11,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
@@ -23,9 +31,12 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -72,7 +83,8 @@ fun LoginScreen(
                 userTypePassword = loginViewModel.userTypePassword,
                 onUserPasswordChanged = { loginViewModel.updateTypePassword(it) },
                 isInputPasswordEmpty = loginUiState.isInputPasswordEmpty,
-                loginViewModel = loginViewModel
+                passwordVisible = loginUiState.passwordVisible,
+                loginViewModel = loginViewModel,
             )
 
             Text(
@@ -101,6 +113,7 @@ fun LoginInput(
     userTypePassword : String,
     onUserPasswordChanged : (String) -> Unit,
     isInputPasswordEmpty : Boolean,
+    passwordVisible : Boolean,
     loginViewModel: LoginViewModel
 ){
     OutlinedTextField(
@@ -149,12 +162,32 @@ fun LoginInput(
             }
         } ,
         isError = isInputPasswordEmpty,
+        visualTransformation =
+            if (passwordVisible){
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            }
+        ,
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(
             onDone = {  }
-        )
+        ),
+        trailingIcon = {
+            val icon = if (passwordVisible){
+                Icons.Default.Favorite
+            } else {
+                Icons.Default.FavoriteBorder
+            }
+
+            IconButton(
+                onClick = { loginViewModel.updateVisiblePassword(!passwordVisible) }
+            ) {
+                Icon(imageVector = icon, contentDescription = "Visibility")
+            }
+        }
     )
 
     Button(
