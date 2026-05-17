@@ -16,6 +16,7 @@ import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -31,6 +32,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import id.ac.pnm.bayarin_app.R
 import id.ac.pnm.bayarin_app.ui.auth.register.RegisterInput
+import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 @Composable
 fun LoginScreen(
@@ -72,6 +74,19 @@ fun LoginScreen(
                 isInputPasswordEmpty = loginUiState.isInputPasswordEmpty,
                 loginViewModel = loginViewModel
             )
+
+            Text(
+                text = "Belum punya akun?",
+                fontSize = 16.sp
+            )
+
+            TextButton(
+                onClick = {
+                    navController.navigate(Routes.REGISTER)
+                }
+            ) {
+                Text("Daftar Sekarang")
+            }
 
         }
 
@@ -147,7 +162,7 @@ fun LoginInput(
         onClick = { loginViewModel.loginUser(userTypeUsername, userTypePassword) }
     ) {
         Text(
-            text = stringResource(R.string.register_button),
+            text = stringResource(R.string.login_button),
             fontSize = 16.sp
         )
     }
