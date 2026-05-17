@@ -5,4 +5,5 @@ data class RegisterUiState(
     val isInputEmailEmpty : Boolean = false,
     val IsInputTelpEmpty : Boolean = false,
     val IsInputPasswordEmpty : Boolean = false,
+    val passwordVisible : Boolean = false,
 )

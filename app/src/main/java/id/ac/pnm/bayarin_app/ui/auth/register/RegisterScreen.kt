@@ -11,7 +11,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme.colorScheme
 import androidx.compose.material3.MaterialTheme.shapes
 import androidx.compose.material3.MaterialTheme.typography
@@ -29,6 +34,8 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -81,6 +88,7 @@ fun RegisterScreen(
                 userTypePassword = registerViewModel.userTypePassword,
                 onUserPasswordChanged = { registerViewModel.updateTypePassword(it) } ,
                 isInputPasswordEmpty = registerUiState.IsInputPasswordEmpty,
+                passwordVisible = registerUiState.passwordVisible,
                 registerViewModel = registerViewModel
             )
 
@@ -116,6 +124,7 @@ fun RegisterInput(
     userTypePassword : String,
     onUserPasswordChanged: (String) -> Unit,
     isInputPasswordEmpty : Boolean,
+    passwordVisible : Boolean,
     registerViewModel: RegisterViewModel,
 ){
     OutlinedTextField(
@@ -142,7 +151,7 @@ fun RegisterInput(
         ),
         keyboardActions = KeyboardActions(
             onDone = {  }
-        )
+        ),
     )
 
     OutlinedTextField(
@@ -218,12 +227,31 @@ fun RegisterInput(
             }
         } ,
         isError = isInputPasswordEmpty,
+        visualTransformation =
+            if (passwordVisible){
+                VisualTransformation.None
+            } else {
+                PasswordVisualTransformation()
+            },
         keyboardOptions = KeyboardOptions.Default.copy(
             imeAction = ImeAction.Done
         ),
         keyboardActions = KeyboardActions(
             onDone = {  }
-        )
+        ),
+        trailingIcon = {
+            val icon = if (passwordVisible){
+                Icons.Default.Favorite
+            } else {
+                Icons.Default.FavoriteBorder
+            }
+
+            IconButton(
+                onClick = { registerViewModel.updateVisiblePassword(!passwordVisible) }
+            ) {
+                Icon(imageVector = icon, contentDescription = "Visibility")
+            }
+        }
     )
 
     Button(
