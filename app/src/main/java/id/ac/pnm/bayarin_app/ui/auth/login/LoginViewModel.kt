@@ -36,6 +36,14 @@ class LoginViewModel : ViewModel() {
         userTypePassword = userType
     }
 
+    fun updateVisiblePassword(status : Boolean){
+        _uiState.update { currentState ->
+            currentState.copy(
+                passwordVisible = status
+            )
+        }
+    }
+
     fun loginUser(userUsername : String, userPassword : String){
         if (userUsername.isNotEmpty() && userPassword.isNotEmpty()){
 
