@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 val BluePrimary = Color(0xFF0056D2)
 val BlueLightBg = Color(0xFFF4F7FC)
@@ -40,7 +42,9 @@ data class GroupData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupScreen() {
+fun GroupScreen(
+    navController: NavController
+) {
     //data dummy
     val groupList = listOf(
         GroupData("Kos Mojoarum", 4, "DARI KAMU", "Rp150.000", true, Icons.Default.Home),
@@ -75,7 +79,7 @@ fun GroupScreen() {
             )
         },
         bottomBar = {
-            GroupBottomNavBar()
+            GroupBottomNavBar(navController)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -195,7 +199,9 @@ fun GroupCardItem(group: GroupData) {
 }
 
 @Composable
-fun GroupBottomNavBar() {
+fun GroupBottomNavBar(
+    navController: NavController
+) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -204,7 +210,13 @@ fun GroupBottomNavBar() {
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             label = { Text("Home") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.HOME) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Group") },
@@ -218,7 +230,7 @@ fun GroupBottomNavBar() {
             )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Add, contentDescription = "Tambah") },
+            icon = { Icon(Icons.Default.AddCircle, contentDescription = "Tambah") },
             label = { Text("Tambah") },
             selected = false,
             onClick = { /* TODO */ }
@@ -227,7 +239,13 @@ fun GroupBottomNavBar() {
             icon = { Icon(Icons.Default.DateRange, contentDescription = "Pengingat") },
             label = { Text("Pengingat") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.REMINDER) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") },
@@ -235,13 +253,5 @@ fun GroupBottomNavBar() {
             selected = false,
             onClick = { /* TODO */ }
         )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun GroupScreenPreview() {
-    MaterialTheme {
-        GroupScreen()
     }
 }
