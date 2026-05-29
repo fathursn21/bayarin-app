@@ -18,9 +18,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 val BluePrimary = Color(0xFF2473ED)
 val BlueLight = Color(0xFFE8F0FE)
@@ -40,7 +41,9 @@ data class TransactionData(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen() {
+fun HomeScreen(
+    navController: NavController
+) {
     //data dummy
     val transactions = listOf(
         TransactionData("Makan Siang Kyme", "Hari ini, 12:30", "-Rp 20.000", false, Icons.Default.ShoppingCart),
@@ -87,7 +90,7 @@ fun DashboardScreen() {
             }
         },
         bottomBar = {
-            BottomNavBar()
+            HomeBottomNavBar(navController)
         }
     ) { paddingValues ->
         LazyColumn(
@@ -327,7 +330,9 @@ fun TransactionItem(title: String, time: String, amount: String, isIncome: Boole
 }
 
 @Composable
-fun BottomNavBar() {
+fun HomeBottomNavBar(
+    navController: NavController
+) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -347,7 +352,13 @@ fun BottomNavBar() {
             icon = { Icon(Icons.Default.Person, contentDescription = "Group") },
             label = { Text("Group") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.GROUP) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.AddCircle, contentDescription = "Tambah") },
@@ -359,7 +370,13 @@ fun BottomNavBar() {
             icon = { Icon(Icons.Default.DateRange, contentDescription = "Pengingat") },
             label = { Text("Pengingat") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.REMINDER) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") },
@@ -367,13 +384,5 @@ fun BottomNavBar() {
             selected = false,
             onClick = { /* TODO */ }
         )
-    }
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun DashboardScreenPreview() {
-    MaterialTheme {
-        DashboardScreen()
     }
 }
