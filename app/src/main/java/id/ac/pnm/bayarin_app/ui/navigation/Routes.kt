@@ -5,4 +5,8 @@ object Routes {
     const val REGISTER = "register"
     const val PROFILE = "profile"
     const val NEW_NOTES = "new_notes"
+    const val HOME = "home"
+    const val GROUP = "group"
+    const val REMINDER = "reminder"
+
 }
