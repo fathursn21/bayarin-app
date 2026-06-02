@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import id.ac.pnm.bayarin_app.ui.auth.login.LoginScreen
 import id.ac.pnm.bayarin_app.ui.auth.register.RegisterScreen
 import id.ac.pnm.bayarin_app.ui.profile.ProfileScreen
+import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
 
 @Composable
 fun AppNavigation(){
@@ -14,7 +15,7 @@ fun AppNavigation(){
 
     NavHost(
         navController = navController,
-        startDestination = Routes.PROFILE
+        startDestination = Routes.LOGIN
     ) {
          composable(Routes.LOGIN) {
              LoginScreen(navController)
@@ -26,6 +27,10 @@ fun AppNavigation(){
 
         composable(Routes.PROFILE) {
             ProfileScreen()
+        }
+
+        composable(Routes.NEW_NOTES) {
+            NewNotesScreen()
         }
     }
 }
