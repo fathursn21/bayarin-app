@@ -7,6 +7,7 @@ import androidx.navigation.compose.rememberNavController
 import id.ac.pnm.bayarin_app.ui.auth.login.LoginScreen
 import id.ac.pnm.bayarin_app.ui.auth.register.RegisterScreen
 import id.ac.pnm.bayarin_app.ui.profile.ProfileScreen
+import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
 import id.ac.pnm.bayarin_app.ui.group.GroupScreen
 import id.ac.pnm.bayarin_app.ui.home.HomeScreen
 import id.ac.pnm.bayarin_app.ui.reminder.ReminderScreen
@@ -17,7 +18,8 @@ fun AppNavigation(){
 
     NavHost(
         navController = navController,
-        startDestination = Routes.PROFILE
+//         startDestination = Routes.LOGIN
+//         startDestination = Routes.PROFILE
 //        startDestination = Routes.LOGIN
         startDestination = Routes.HOME
     ) {
@@ -42,6 +44,10 @@ fun AppNavigation(){
         composable(Routes.REMINDER) {
             ReminderScreen(navController)
 
+        }
+
+        composable(Routes.NEW_NOTES) {
+            NewNotesScreen()
         }
     }
 }
