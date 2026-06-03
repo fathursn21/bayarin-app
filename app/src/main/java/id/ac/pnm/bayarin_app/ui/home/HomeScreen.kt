@@ -82,7 +82,7 @@ fun HomeScreen(
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { /* TODO */ },
+                onClick = { navController.navigate(Routes.NEW_NOTES) },
                 containerColor = BluePrimary,
                 shape = CircleShape
             ) {
@@ -364,7 +364,13 @@ fun HomeBottomNavBar(
             icon = { Icon(Icons.Default.AddCircle, contentDescription = "Tambah") },
             label = { Text("Tambah") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.NEW_NOTES) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.DateRange, contentDescription = "Pengingat") },

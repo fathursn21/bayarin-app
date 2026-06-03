@@ -20,8 +20,8 @@ fun AppNavigation(){
         navController = navController,
 //         startDestination = Routes.LOGIN
 //         startDestination = Routes.PROFILE
-//        startDestination = Routes.LOGIN
-        startDestination = Routes.HOME
+        startDestination = Routes.LOGIN
+//        startDestination = Routes.HOME
     ) {
          composable(Routes.LOGIN) {
              LoginScreen(navController)
@@ -33,6 +33,8 @@ fun AppNavigation(){
 
         composable(Routes.PROFILE) {
             ProfileScreen()
+        }
+
         composable(Routes.HOME) {
             HomeScreen(navController)
         }
@@ -47,7 +49,7 @@ fun AppNavigation(){
         }
 
         composable(Routes.NEW_NOTES) {
-            NewNotesScreen()
+            NewNotesScreen(navController)
         }
     }
 }
