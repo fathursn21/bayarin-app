@@ -233,7 +233,11 @@ fun GroupBottomNavBar(
             icon = { Icon(Icons.Default.AddCircle, contentDescription = "Tambah") },
             label = { Text("Tambah") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {navController.navigate(Routes.NEW_NOTES) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }}
         )
         NavigationBarItem(
             icon = { Icon(Icons.Default.DateRange, contentDescription = "Pengingat") },
@@ -251,7 +255,13 @@ fun GroupBottomNavBar(
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") },
             label = { Text("Profile") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.PROFILE) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
     }
 }

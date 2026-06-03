@@ -388,7 +388,13 @@ fun HomeBottomNavBar(
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") },
             label = { Text("Profile") },
             selected = false,
-            onClick = { /* TODO */ }
+            onClick = {
+                navController.navigate(Routes.PROFILE) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
     }
 }

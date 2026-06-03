@@ -32,7 +32,7 @@ fun AppNavigation(){
         }
 
         composable(Routes.PROFILE) {
-            ProfileScreen()
+            ProfileScreen(navController)
         }
 
         composable(Routes.HOME) {
