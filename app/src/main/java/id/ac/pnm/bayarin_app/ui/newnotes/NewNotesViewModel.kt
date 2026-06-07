@@ -74,7 +74,14 @@ class NewNotesViewModel : ViewModel() {
 
     fun addNotes(expense : Boolean, nominal : String, category : String, date : Long, note : String){
 
-        if (nominal.isNotEmpty() && category.isNotEmpty() && date != 0L){
+        if (!validateInput(
+                nominal = nominal,
+                category = category,
+                date = date
+            )
+        ) {
+            return
+        }
 
             val uid = Firebase.auth.currentUser?.uid ?: ""
 
@@ -105,33 +112,6 @@ class NewNotesViewModel : ViewModel() {
                 )
             }
 
-        } else if (nominal.isEmpty()){
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputNominalEmpty = true,
-                )
-            }
-        } else if (category.isEmpty()){
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputCategoryEmpty = true,
-                )
-            }
-        } else if (date == 0L){
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputDateEmpty = true,
-                )
-            }
-        } else {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputNominalEmpty = true,
-                    isInputCategoryEmpty = true,
-                    isInputDateEmpty = true,
-                )
-            }
-        }
 
     }
 
@@ -157,5 +137,35 @@ class NewNotesViewModel : ViewModel() {
                     )
                 }
             })
+    }
+
+    private fun validateInput(
+        nominal: String,
+        category: String,
+        date: Long
+    ): Boolean {
+
+        val nominalValue = nominal.toLongOrNull()
+
+        val isNominalValid =
+            nominalValue != null && nominalValue > 0
+
+        val isCategoryValid =
+            category.isNotBlank()
+
+        val isDateValid =
+            date != 0L
+
+        _uiState.update {
+            it.copy(
+                isInputNominalEmpty = !isNominalValid,
+                isInputCategoryEmpty = !isCategoryValid,
+                isInputDateEmpty = !isDateValid
+            )
+        }
+
+        return isNominalValid &&
+                isCategoryValid &&
+                isDateValid
     }
 }

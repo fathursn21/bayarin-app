@@ -124,6 +124,10 @@ fun HomeScreen(
             }
 
             when {
+                newNotesUiState.isLoading -> {
+                    item { CircularProgressIndicator() }
+                }
+
                 newNotesUiState.error != "" -> {
                     item { Text(newNotesUiState.error) }
                 } else -> {
