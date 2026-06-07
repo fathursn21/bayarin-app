@@ -8,5 +8,5 @@ object Routes {
     const val HOME = "home"
     const val GROUP = "group"
     const val REMINDER = "reminder"
-
+    const val TAMBAH_GROUP = "tambah_group"
 }

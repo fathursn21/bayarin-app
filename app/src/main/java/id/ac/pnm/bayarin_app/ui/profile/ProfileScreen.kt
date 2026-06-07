@@ -22,13 +22,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 // Definisi warna untuk Bottom Nav Bar
-val BluePrimary = Color(0xFF2473ED)
+val BluePrimary = Color(0xFF0056D2)
 val BlueLight = Color(0xFFE8F0FE)
+val BlueLightBg = Color(0xFFF8F9FA)
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
     navController: NavController,
@@ -37,19 +38,39 @@ fun ProfileScreen(
     val profileUiState by profileViewModel.uiState.collectAsState()
 
     LaunchedEffect(profileUiState.isLogout) {
-
         if (profileUiState.isLogout) {
-
             navController.navigate(Routes.LOGIN) {
                 popUpTo(navController.graph.startDestinationId) { saveState = true }
                 launchSingleTop = true
                 restoreState = true
             }
-
         }
     }
 
     Scaffold(
+        containerColor = BlueLightBg,
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "Bayarin",
+                        color = BluePrimary,
+                        fontWeight = FontWeight.ExtraBold,
+                        fontSize = 22.sp
+                    )
+                },
+                actions = {
+                    IconButton(onClick = { /* TODO */ }) {
+                        Icon(
+                            imageVector = Icons.Default.Notifications,
+                            contentDescription = "Notifications",
+                            tint = BluePrimary
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = BlueLightBg)
+            )
+        },
         bottomBar = {
             ProfileBottomNavBar(navController = navController)
         }
@@ -57,32 +78,12 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFFF8F9FA)) // Warna background abu-abu terang
-                .padding(paddingValues) // Penting: Agar konten tidak tertutup bottom bar
-                .padding(horizontal = 24.dp, vertical = 32.dp)
+                .padding(paddingValues)
+                .padding(horizontal = 24.dp)
         ) {
-            // --- 1. BAGIAN HEADER ---
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Bayarin",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = Color(0xFF0D47A1)
-                )
-                IconButton(onClick = { /* TODO */ }) {
-                    Icon(
-                        imageVector = Icons.Default.Notifications,
-                        contentDescription = "Notifikasi",
-                        tint = Color(0xFF0D47A1)
-                    )
-                }
-            }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            // Jarak kecil dari TopBar ke Avatar
+            Spacer(modifier = Modifier.height(16.dp))
 
             // --- 2. BAGIAN AVATAR DAN NAMA ---
             Column(
@@ -131,7 +132,7 @@ fun ProfileScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp)) // Jarak dari nama ke menu card
+            Spacer(modifier = Modifier.height(32.dp))
 
             // --- 3. BAGIAN MENU CARD ---
 
@@ -140,7 +141,7 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = CardDefaults.cardColors(containerColor = Color.White),
                 shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp) // Tanpa bayangan
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column {
                     MenuItem(
@@ -149,7 +150,6 @@ fun ProfileScreen(
                         iconBgColor = Color(0xFFE8EDF4),
                         title = "Riwayat Patungan"
                     )
-                    // Garis pembatas (Divider)
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         thickness = 1.dp,
@@ -175,7 +175,7 @@ fun ProfileScreen(
             ) {
                 MenuItem(
                     icon = Icons.Default.Info,
-                    iconTint = Color(0xFF0D47A1), // Biru lebih terang
+                    iconTint = Color(0xFF0D47A1),
                     iconBgColor = Color(0xFFE3EDFA),
                     title = "Pusat Bantuan"
                 )
@@ -192,8 +192,8 @@ fun ProfileScreen(
             ) {
                 MenuItem(
                     icon = Icons.Default.ExitToApp,
-                    iconTint = Color(0xFFD32F2F), // Merah
-                    iconBgColor = Color(0xFFFFEBEE), // Merah muda transparan
+                    iconTint = Color(0xFFD32F2F),
+                    iconBgColor = Color(0xFFFFEBEE),
                     title = "Keluar",
                     titleColor = Color(0xFFD32F2F),
                     showArrow = false,
@@ -269,11 +269,11 @@ fun ProfileBottomNavBar(
             label = { Text("Home") },
             selected = false,
             onClick = {
-                 navController.navigate(Routes.HOME) {
-                     popUpTo(navController.graph.startDestinationId) { saveState = true }
-                     launchSingleTop = true
-                     restoreState = true
-                 }
+                navController.navigate(Routes.HOME) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         )
         NavigationBarItem(
@@ -281,11 +281,11 @@ fun ProfileBottomNavBar(
             label = { Text("Group") },
             selected = false,
             onClick = {
-                 navController.navigate(Routes.GROUP) {
-                     popUpTo(navController.graph.startDestinationId) { saveState = true }
-                     launchSingleTop = true
-                     restoreState = true
-                 }
+                navController.navigate(Routes.GROUP) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         )
         NavigationBarItem(
@@ -305,11 +305,11 @@ fun ProfileBottomNavBar(
             label = { Text("Pengingat") },
             selected = false,
             onClick = {
-                 navController.navigate(Routes.REMINDER) {
-                     popUpTo(navController.graph.startDestinationId) { saveState = true }
-                     launchSingleTop = true
-                     restoreState = true
-                 }
+                navController.navigate(Routes.REMINDER) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
             }
         )
         NavigationBarItem(

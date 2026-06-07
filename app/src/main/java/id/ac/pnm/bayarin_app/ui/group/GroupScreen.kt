@@ -69,7 +69,7 @@ fun GroupScreen(
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
                         Icon(
-                            imageVector = Icons.Outlined.Notifications,
+                            imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications",
                             tint = BluePrimary
                         )
@@ -92,7 +92,7 @@ fun GroupScreen(
         ) {
             item {
                 Button(
-                    onClick = { /* TODO  */ },
+                    onClick = {navController.navigate(Routes.TAMBAH_GROUP)},
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(50.dp),
