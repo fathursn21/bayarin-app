@@ -53,6 +53,16 @@ fun LoginScreen(
     val loginUiState by loginViewModel.uiState.collectAsState()
     val mediumPadding = dimensionResource(R.dimen.padding_medium)
 
+    if (loginUiState.isLoginSuccess) {
+
+        navController.navigate(Routes.HOME) {
+            popUpTo(Routes.LOGIN) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+    }
+
     Column(
         modifier = Modifier
             .statusBarsPadding()
