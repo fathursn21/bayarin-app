@@ -1,6 +1,7 @@
 package id.ac.pnm.bayarin_app.ui.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -8,6 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,12 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
-
-// Pastikan kamu mengimpor Routes jika file-nya ada di project-mu
-// import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 // Definisi warna untuk Bottom Nav Bar
 val BluePrimary = Color(0xFF2473ED)
@@ -29,9 +31,24 @@ val BlueLight = Color(0xFFE8F0FE)
 
 @Composable
 fun ProfileScreen(
-    navController: NavController
+    navController: NavController,
+    profileViewModel: ProfileViewModel = viewModel(),
 ) {
-    // Menggunakan Scaffold untuk menampung Bottom Navigation Bar
+    val profileUiState by profileViewModel.uiState.collectAsState()
+
+    LaunchedEffect(profileUiState.isLogout) {
+
+        if (profileUiState.isLogout) {
+
+            navController.navigate(Routes.LOGIN) {
+                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+
+        }
+    }
+
     Scaffold(
         bottomBar = {
             ProfileBottomNavBar(navController = navController)
@@ -179,7 +196,8 @@ fun ProfileScreen(
                     iconBgColor = Color(0xFFFFEBEE), // Merah muda transparan
                     title = "Keluar",
                     titleColor = Color(0xFFD32F2F),
-                    showArrow = false // Sesuai desain, tombol keluar tidak pakai panah
+                    showArrow = false,
+                    onClick = { profileViewModel.logout() }
                 )
             }
         }
@@ -194,10 +212,12 @@ fun MenuItem(
     iconBgColor: Color,
     title: String,
     titleColor: Color = Color(0xFF1A1A1A),
-    showArrow: Boolean = true
+    showArrow: Boolean = true,
+    onClick: () -> Unit = {}
 ) {
     Row(
         modifier = Modifier
+            .clickable { onClick() }
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
