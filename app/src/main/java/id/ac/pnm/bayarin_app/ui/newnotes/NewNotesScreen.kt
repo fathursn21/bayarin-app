@@ -44,6 +44,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,8 +79,15 @@ fun NewNotesScreen(
         Locale("id", "ID")
     )
 
-    // State untuk menentukan apakah tab yang aktif adalah Pengeluaran (true) atau Pemasukan (false)
-    var isExpense by remember { mutableStateOf(true) }
+    if (newNotesUiState.isSuccessfully) {
+
+        navController.navigate(Routes.HOME) {
+            popUpTo(Routes.LOGIN) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -137,11 +145,11 @@ fun NewNotesScreen(
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        isExpense = true
+                        newNotesViewModel.updateVisibleExpense(true)
                         newNotesViewModel.updateSelectCategory("") // Reset kategori saat pindah tab
                     }
                     .background(
-                        if (isExpense) Color(0xFF0D47A1) else Color.Transparent,
+                        if (newNotesViewModel.showExpense) Color(0xFF0D47A1) else Color.Transparent,
                         RoundedCornerShape(20.dp)
                     )
                     .padding(vertical = 12.dp),
@@ -149,7 +157,7 @@ fun NewNotesScreen(
             ) {
                 Text(
                     text = "Pengeluaran",
-                    color = if (isExpense) Color.White else Color(0xFF5F6368),
+                    color = if (newNotesViewModel.showExpense) Color.White else Color(0xFF5F6368),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
@@ -160,11 +168,11 @@ fun NewNotesScreen(
                 modifier = Modifier
                     .weight(1f)
                     .clickable {
-                        isExpense = false
+                        newNotesViewModel.updateVisibleExpense(false)
                         newNotesViewModel.updateSelectCategory("") // Reset kategori saat pindah tab
                     }
                     .background(
-                        if (!isExpense) Color(0xFF0D47A1) else Color.Transparent,
+                        if (!newNotesViewModel.showExpense) Color(0xFF0D47A1) else Color.Transparent,
                         RoundedCornerShape(20.dp)
                     )
                     .padding(vertical = 12.dp),
@@ -172,7 +180,7 @@ fun NewNotesScreen(
             ) {
                 Text(
                     text = "Pemasukan",
-                    color = if (!isExpense) Color.White else Color(0xFF5F6368),
+                    color = if (!newNotesViewModel.showExpense) Color.White else Color(0xFF5F6368),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
@@ -187,7 +195,7 @@ fun NewNotesScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = if (isExpense) "PENGELUARAN BARU" else "PEMASUKAN BARU",
+                text = if (newNotesViewModel.showExpense) "PENGELUARAN BARU" else "PEMASUKAN BARU",
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color(0xFF5F6368)
@@ -245,7 +253,7 @@ fun NewNotesScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (isExpense) {
+        if (newNotesViewModel.showExpense) {
             // Kategori Pengeluaran
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -360,6 +368,7 @@ fun NewNotesScreen(
         Button(
             onClick = {
                 newNotesViewModel.addNotes(
+                    newNotesViewModel.showExpense,
                     newNotesViewModel.userTypeNominal,
                     newNotesViewModel.updateUserCategory,
                     newNotesViewModel.updateUserDate,
