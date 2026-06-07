@@ -11,17 +11,27 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
+import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesViewModel
+import java.text.NumberFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 val BluePrimary = Color(0xFF2473ED)
 val BlueLight = Color(0xFFE8F0FE)
@@ -42,19 +52,15 @@ data class TransactionData(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController
+    navController: NavController,
+    newNotesViewModel : NewNotesViewModel = viewModel(),
 ) {
-    //data dummy
-    val transactions = listOf(
-        TransactionData("Makan Siang Kyme", "Hari ini, 12:30", "-Rp 20.000", false, Icons.Default.ShoppingCart),
-        TransactionData("Gojek ke Kampus", "Kemarin, 08:15", "-Rp 24.000", false, Icons.Default.Place),
-        TransactionData("Transfer dari Fathur", "24 Okt, 15:00", "+Rp 150.000", true, Icons.Default.AccountBox),
-        TransactionData("Beli Kuota Internet", "23 Okt, 10:00", "-Rp 50.000", false, Icons.Default.Phone),
-        TransactionData("Uang Saku Bulanan", "20 Okt, 08:00", "+Rp 500.000", true, Icons.Default.AccountBox),
-        TransactionData("Beli Kopi", "19 Okt, 16:20", "-Rp 15.000", false, Icons.Default.ShoppingCart),
-        TransactionData("Patungan Project", "18 Okt, 13:00", "+Rp 75.000", true, Icons.Default.AccountBox),
-        TransactionData("Print Laporan", "15 Okt, 09:10", "-Rp 12.000", false, Icons.Default.Build)
-    )
+
+    val newNotesUiState by newNotesViewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        newNotesViewModel.loadNotes()
+    }
 
     Scaffold(
         containerColor = BackgroundGray,
@@ -117,15 +123,20 @@ fun HomeScreen(
                 }
             }
 
-            //daftar transaksi
-            items(transactions) { transaction ->
-                TransactionItem(
-                    title = transaction.title,
-                    time = transaction.time,
-                    amount = transaction.amount,
-                    isIncome = transaction.isIncome,
-                    icon = transaction.icon
-                )
+            when {
+                newNotesUiState.error != "" -> {
+                    item { Text(newNotesUiState.error) }
+                } else -> {
+                    items(newNotesUiState.notes){ notes ->
+                        TransactionItem(
+                            title = notes.category,
+                            time = formatDate(notes.date),
+                            amount = formatRupiah(notes.nominal),
+                            isIncome = !notes.expense,
+                            icon = getCategoryIcon(notes.category)
+                        )
+                    }
+                }
             }
 
             item { Spacer(modifier = Modifier.height(60.dp)) }
@@ -396,5 +407,42 @@ fun HomeBottomNavBar(
                 }
             }
         )
+    }
+}
+
+
+fun formatRupiah(value: Long): String {
+    if (value == 0L) return ""
+
+    return "Rp " + NumberFormat
+        .getNumberInstance(Locale("id", "ID"))
+        .format(value)
+}
+
+fun formatDate(timestamp: Long): String {
+
+    val formatter = SimpleDateFormat(
+        "dd MMMM yyyy",
+        Locale("id", "ID")
+    )
+
+    return formatter.format(Date(timestamp))
+}
+
+fun getCategoryIcon(category: String): ImageVector {
+    return when(category) {
+        "Belanja" -> Icons.Default.ShoppingCart
+        "Tagihan" -> Icons.Default.List
+        "Kesehatan" -> Icons.Default.Favorite
+        "Lain lain" -> Icons.Default.Add
+        "Gaji" -> Icons.Default.AccountBox
+        "Bonus" -> Icons.Default.Star
+        "Jualan" -> Icons.Default.ShoppingCart
+        "Hadiah" -> Icons.Default.ThumbUp
+        "Makan" -> Icons.Default.ShoppingCart
+        "Transport" -> Icons.Default.Place
+        "Hiburan" -> Icons.Default.Face
+        "Kos" -> Icons.Default.Home
+        else -> Icons.Default.Add
     }
 }
