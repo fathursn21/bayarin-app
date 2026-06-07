@@ -49,9 +49,6 @@ import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -80,9 +77,6 @@ fun NewNotesScreen(
         "dd MMMM yyyy",
         Locale("id", "ID")
     )
-
-    // State untuk menentukan apakah tab yang aktif adalah Pengeluaran (true) atau Pemasukan (false)
-    var isExpense by remember { mutableStateOf(true) }
 
     Scaffold(
         containerColor = Color.White,
@@ -139,7 +133,7 @@ fun NewNotesScreen(
                 .padding(bottom = 24.dp)
         ) {
 
-            Spacer(modifier = Modifier.height(16.dp)) // Jarak kecil dari TopBar
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Tab pemasukan atau pengeluaran baru
             Row(
@@ -153,11 +147,11 @@ fun NewNotesScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clickable {
-                            isExpense = true
+                            newNotesViewModel.updateVisibleExpense(true)
                             newNotesViewModel.updateSelectCategory("")
                         }
                         .background(
-                            if (isExpense) Color(0xFF0D47A1) else Color.Transparent,
+                            if (newNotesViewModel.showExpense) Color(0xFF0D47A1) else Color.Transparent,
                             RoundedCornerShape(20.dp)
                         )
                         .padding(vertical = 12.dp),
@@ -165,7 +159,7 @@ fun NewNotesScreen(
                 ) {
                     Text(
                         text = "Pengeluaran",
-                        color = if (isExpense) Color.White else Color(0xFF5F6368),
+                        color = if (newNotesViewModel.showExpense) Color.White else Color(0xFF5F6368),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
@@ -176,11 +170,11 @@ fun NewNotesScreen(
                     modifier = Modifier
                         .weight(1f)
                         .clickable {
-                            isExpense = false
+                            newNotesViewModel.updateVisibleExpense(false)
                             newNotesViewModel.updateSelectCategory("")
                         }
                         .background(
-                            if (!isExpense) Color(0xFF0D47A1) else Color.Transparent,
+                            if (!newNotesViewModel.showExpense) Color(0xFF0D47A1) else Color.Transparent,
                             RoundedCornerShape(20.dp)
                         )
                         .padding(vertical = 12.dp),
@@ -188,7 +182,7 @@ fun NewNotesScreen(
                 ) {
                     Text(
                         text = "Pemasukan",
-                        color = if (!isExpense) Color.White else Color(0xFF5F6368),
+                        color = if (!newNotesViewModel.showExpense) Color.White else Color(0xFF5F6368),
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp
                     )
@@ -197,13 +191,13 @@ fun NewNotesScreen(
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            //input nominal
+            // input nominal
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
-                    text = if (isExpense) "PENGELUARAN BARU" else "PEMASUKAN BARU",
+                    text = if (newNotesViewModel.showExpense) "PENGELUARAN BARU" else "PEMASUKAN BARU",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF5F6368)
@@ -246,12 +240,11 @@ fun NewNotesScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
-
             }
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            //label kategori
+            // label kategori
             Text(
                 text = "Kategori",
                 fontSize = 16.sp,
@@ -261,7 +254,8 @@ fun NewNotesScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            if (isExpense) {
+            // Kategori List
+            if (newNotesViewModel.showExpense) {
                 // Kategori Pengeluaran
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -309,7 +303,6 @@ fun NewNotesScreen(
             Spacer(modifier = Modifier.height(32.dp))
 
             // form tanggal dan catatan
-            // Kotak Tanggal
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -412,11 +405,9 @@ fun NewNotesScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-
                         datePickerState.selectedDateMillis?.let {
                             newNotesViewModel.updateSelectedDate(it)
                         }
-
                         newNotesViewModel.updateVisibleDatepicker(false)
                     }
                 ) {
@@ -438,7 +429,6 @@ fun NewNotesScreen(
             )
         }
     }
-
 }
 
 //warna kategori
