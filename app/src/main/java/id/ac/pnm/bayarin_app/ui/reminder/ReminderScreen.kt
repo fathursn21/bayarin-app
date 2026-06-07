@@ -73,7 +73,7 @@ fun ReminderScreen(
                 actions = {
                     IconButton(onClick = { /* TODO */ }) {
                         Icon(
-                            imageVector = Icons.Outlined.Notifications,
+                            imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications",
                             tint = BluePrimary
                         )

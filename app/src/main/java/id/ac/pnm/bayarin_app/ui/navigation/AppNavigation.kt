@@ -11,6 +11,7 @@ import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
 import id.ac.pnm.bayarin_app.ui.group.GroupScreen
 import id.ac.pnm.bayarin_app.ui.home.HomeScreen
 import id.ac.pnm.bayarin_app.ui.reminder.ReminderScreen
+import id.ac.pnm.bayarin_app.ui.tambahGroup.TambahGroupScreen
 
 @Composable
 fun AppNavigation(){
@@ -50,6 +51,16 @@ fun AppNavigation(){
 
         composable(Routes.NEW_NOTES) {
             NewNotesScreen(navController)
+        }
+
+        composable(Routes.TAMBAH_GROUP) {
+            TambahGroupScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onGroupCreated = { groupName, members ->
+                    // TODO: Simpan ke Firebase/Room
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }
