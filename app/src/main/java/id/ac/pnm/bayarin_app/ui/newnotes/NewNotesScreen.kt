@@ -47,6 +47,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -68,8 +69,8 @@ import java.util.Locale
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NewNotesScreen(
-    navController : NavController,
-    newNotesViewModel : NewNotesViewModel = viewModel(),
+    navController: NavController,
+    newNotesViewModel: NewNotesViewModel = viewModel(),
 ) {
     val newNotesUiState by newNotesViewModel.uiState.collectAsState()
 
@@ -77,6 +78,18 @@ fun NewNotesScreen(
         "dd MMMM yyyy",
         Locale("id", "ID")
     )
+
+    // Menggunakan LaunchedEffect agar aman dipanggil di dalam Compose
+    LaunchedEffect(newNotesUiState.isSuccessfully) {
+        if (newNotesUiState.isSuccessfully) {
+            navController.navigate(Routes.HOME) {
+                popUpTo(Routes.LOGIN) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
 
     Scaffold(
         containerColor = Color.White,
@@ -240,6 +253,7 @@ fun NewNotesScreen(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 )
+
             }
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -254,7 +268,6 @@ fun NewNotesScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Kategori List
             if (newNotesViewModel.showExpense) {
                 // Kategori Pengeluaran
                 Row(
@@ -369,6 +382,7 @@ fun NewNotesScreen(
             Button(
                 onClick = {
                     newNotesViewModel.addNotes(
+                        newNotesViewModel.showExpense,
                         newNotesViewModel.userTypeNominal,
                         newNotesViewModel.updateUserCategory,
                         newNotesViewModel.updateUserDate,
@@ -405,9 +419,11 @@ fun NewNotesScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+
                         datePickerState.selectedDateMillis?.let {
                             newNotesViewModel.updateSelectedDate(it)
                         }
+
                         newNotesViewModel.updateVisibleDatepicker(false)
                     }
                 ) {
