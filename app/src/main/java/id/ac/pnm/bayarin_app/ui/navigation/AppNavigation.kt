@@ -6,12 +6,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import id.ac.pnm.bayarin_app.ui.auth.login.LoginScreen
 import id.ac.pnm.bayarin_app.ui.auth.register.RegisterScreen
+import id.ac.pnm.bayarin_app.ui.daftarTeman.DaftarTemanScreen
 import id.ac.pnm.bayarin_app.ui.profile.ProfileScreen
 import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
 import id.ac.pnm.bayarin_app.ui.group.GroupScreen
 import id.ac.pnm.bayarin_app.ui.home.HomeScreen
 import id.ac.pnm.bayarin_app.ui.reminder.ReminderScreen
 import id.ac.pnm.bayarin_app.ui.tambahGroup.TambahGroupScreen
+import id.ac.pnm.bayarin_app.ui.tambahTeman.TambahTemanScreen
 
 @Composable
 fun AppNavigation(){
@@ -59,6 +61,20 @@ fun AppNavigation(){
                 onGroupCreated = { groupName, members ->
                     // TODO: Simpan ke Firebase/Room
                     navController.popBackStack()
+                }
+            )
+        }
+        composable(Routes.DAFTAR_TEMAN) {
+            DaftarTemanScreen(
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.TAMBAH_TEMAN){
+            TambahTemanScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToDaftarTeman = {
+                     navController.navigate(Routes.DAFTAR_TEMAN)
                 }
             )
         }

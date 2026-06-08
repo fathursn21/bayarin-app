@@ -2,6 +2,7 @@ package id.ac.pnm.bayarin_app.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -109,7 +110,13 @@ fun HomeScreen(
             item { Spacer(modifier = Modifier.height(4.dp)) }
 
             item { SummaryCard() }
-            item { QuickActionsRow() }
+            item {
+                QuickActionsRow(
+                    onAddFriendClick = {
+                        navController.navigate(Routes.TAMBAH_TEMAN)
+                    }
+                )
+            }
             item { ExpenseChartCard() }
 
             item {
@@ -187,19 +194,33 @@ fun SummaryCard() {
 }
 
 @Composable
-fun QuickActionsRow() {
+fun QuickActionsRow(
+    onAddFriendClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        ActionItem(icon = Icons.Default.Add, title = "Tambah\nTransaksi")
-        ActionItem(icon = Icons.Default.Person, title = "Buat\nGrup")
-        ActionItem(icon = Icons.Default.MailOutline, title = "Tagih\nTeman")
+        ActionItem(
+            icon = Icons.Default.Person,
+            title = "Tambah\nTeman",
+            onClick = onAddFriendClick
+        )
+        ActionItem(
+            icon = Icons.Default.Person,
+            title = "Buat\nGrup",
+            onClick = { /* TODO */ }
+        )
+        ActionItem(
+            icon = Icons.Default.MailOutline,
+            title = "Tagih\nTeman",
+            onClick = { /* TODO */ }
+        )
     }
 }
 
 @Composable
-fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
+fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -207,6 +228,8 @@ fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: Str
         modifier = Modifier
             .width(100.dp)
             .height(90.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

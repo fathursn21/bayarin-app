@@ -78,21 +78,21 @@ class RegisterViewModel : ViewModel() {
                         val user = Users(
                             id = uid ?: "",
                             name = userName,
+                            nameLowerCase = userName.lowercase(),
                             email = userEmail,
                             telp = userTelp
                         )
 
-                        database.child("users").child(uid ?: "").setValue(user).addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
+                        database.child("users").child(uid ?: "").setValue(user).addOnCompleteListener { dbTask ->
+                            if (dbTask.isSuccessful) {
                                 Log.d(TAG, "database.child:success")
                             } else {
-                                Log.w(TAG, "database.child:failure", task.exception)
+                                Log.w(TAG, "database.child:failure", dbTask.exception)
                             }
                         }
 
                     } else {
                         Log.w(TAG, "createUserWithEmail:failure", task.exception)
-
                     }
                 }
 

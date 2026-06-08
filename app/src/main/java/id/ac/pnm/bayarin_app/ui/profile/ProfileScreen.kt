@@ -144,17 +144,41 @@ fun ProfileScreen(
                 elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
             ) {
                 Column {
+                    // Menu 1: Riwayat Patungan
                     MenuItem(
                         icon = Icons.Default.List,
                         iconTint = Color(0xFF5C6E9A),
                         iconBgColor = Color(0xFFE8EDF4),
                         title = "Riwayat Patungan"
                     )
+
                     HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         thickness = 1.dp,
                         color = Color(0xFFF0F0F0)
                     )
+
+                    // Menu 2: Daftar Teman
+                    MenuItem(
+                        // Menggunakan icon Person untuk Daftar Teman
+                        icon = Icons.Default.Person,
+                        iconTint = Color(0xFF5C6E9A),
+                        iconBgColor = Color(0xFFE8EDF4),
+                        title = "Daftar Teman",
+                        onClick = {
+                            navController.navigate(Routes.DAFTAR_TEMAN) {
+                                launchSingleTop = true
+                            }
+                        }
+                    )
+
+                    HorizontalDivider(
+                        modifier = Modifier.padding(horizontal = 16.dp),
+                        thickness = 1.dp,
+                        color = Color(0xFFF0F0F0)
+                    )
+
+                    // Menu 3: Pengaturan Akun
                     MenuItem(
                         icon = Icons.Default.Settings,
                         iconTint = Color(0xFF5C6E9A),
@@ -162,23 +186,6 @@ fun ProfileScreen(
                         title = "Pengaturan Akun"
                     )
                 }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Card 2: Pusat Bantuan
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color.White),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-            ) {
-                MenuItem(
-                    icon = Icons.Default.Info,
-                    iconTint = Color(0xFF0D47A1),
-                    iconBgColor = Color(0xFFE3EDFA),
-                    title = "Pusat Bantuan"
-                )
             }
 
             Spacer(modifier = Modifier.height(16.dp))
