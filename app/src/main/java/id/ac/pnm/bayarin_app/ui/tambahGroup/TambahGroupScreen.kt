@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import id.ac.pnm.bayarin_app.data.model.Users
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,9 +171,8 @@ fun TambahGroupScreen(
                             user = friend,
                             nominalValue = currentNominal,
                             onNominalChange = { newValue ->
-                                if (newValue.all { it.isDigit() }) {
-                                    memberNominals[friend.id] = newValue
-                                }
+                                val cleanNumber = newValue.replace(".", "").filter { it.isDigit() }
+                                memberNominals[friend.id] = cleanNumber
                             },
                             onRemoveClick = {
                                 viewModel.toggleFriendSelection(friend)
@@ -269,7 +270,6 @@ fun AnggotaGrupRowItem(
                 .fillMaxWidth()
                 .padding(12.dp)
         ) {
-            //Info Profil & Tombol Hapus
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
@@ -299,14 +299,14 @@ fun AnggotaGrupRowItem(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            //Mengatur Nominal Tagihan
+            //format rupiah
             OutlinedTextField(
-                value = nominalValue,
+                value = formatRupiahLocal(nominalValue),
                 onValueChange = onNominalChange,
                 label = { Text("Nominal Tagihan", fontSize = 12.sp) },
                 placeholder = { Text("Masukkan jumlah patungan") },
                 prefix = { Text("Rp ", fontWeight = FontWeight.Bold, color = Color.DarkGray) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), // Memunculkan keyboard angka
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 shape = RoundedCornerShape(8.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -316,6 +316,17 @@ fun AnggotaGrupRowItem(
                 )
             )
         }
+    }
+}
+
+fun formatRupiahLocal(value: String): String {
+    if (value.isEmpty()) return ""
+    return try {
+        NumberFormat
+            .getNumberInstance(Locale("id", "ID"))
+            .format(value.toLong())
+    } catch (e: Exception) {
+        ""
     }
 }
 
