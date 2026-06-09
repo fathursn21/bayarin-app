@@ -22,16 +22,18 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RegisterScreen(navController: NavController) {
-    var nama by remember { mutableStateOf("") }
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+fun RegisterScreen(
+    navController: NavController,
+    registerViewModel: RegisterViewModel = viewModel()
+) {
+    val registerUiState by registerViewModel.uiState.collectAsState()
 
     // Efek Gradient untuk Background (Biru muda ke putih)
     val backgroundGradient = Brush.verticalGradient(
@@ -87,8 +89,8 @@ fun RegisterScreen(navController: NavController) {
                     Text(text = "Nama Lengkap", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        value = nama,
-                        onValueChange = { nama = it },
+                        value = registerViewModel.userTypeName,
+                        onValueChange = { registerViewModel.updateTypeName(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -108,8 +110,8 @@ fun RegisterScreen(navController: NavController) {
                     Text(text = "Email", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        value = email,
-                        onValueChange = { email = it },
+                        value = registerViewModel.userTypeEmail,
+                        onValueChange = { registerViewModel.updateTypeEmail(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -130,8 +132,8 @@ fun RegisterScreen(navController: NavController) {
                     Text(text = "Password", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        value = password,
-                        onValueChange = { password = it },
+                        value = registerViewModel.userTypePassword,
+                        onValueChange = { registerViewModel.updateTypePassword(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -143,7 +145,7 @@ fun RegisterScreen(navController: NavController) {
                         leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password", tint = Color(0xFFBDBDBD)) },
                         placeholder = { Text("••••••••", color = Color(0xFFBDBDBD), fontSize = 14.sp) },
                         singleLine = true,
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (registerUiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                     )
 
@@ -151,7 +153,7 @@ fun RegisterScreen(navController: NavController) {
 
                     // TOMBOL DAFTAR
                     Button(
-                        onClick = { /* TODO: Aksi Register */ },
+                        onClick = { registerViewModel.regiterUser(registerViewModel.userTypeName, registerViewModel.userTypeEmail, registerViewModel.userTypeTelp, registerViewModel.userTypePassword) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
