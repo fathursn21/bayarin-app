@@ -1,213 +1,184 @@
 package id.ac.pnm.bayarin_app.ui.auth.login
 
-import android.graphics.drawable.Icon
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawingPadding
-import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.BasicAlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme.colorScheme
-import androidx.compose.material3.MaterialTheme.shapes
-import androidx.compose.material3.MaterialTheme.typography
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.dimensionResource
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import id.ac.pnm.bayarin_app.R
-import id.ac.pnm.bayarin_app.ui.auth.register.RegisterInput
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(
-    navController: NavController,
-    loginViewModel: LoginViewModel = viewModel()
-){
-    val loginUiState by loginViewModel.uiState.collectAsState()
-    val mediumPadding = dimensionResource(R.dimen.padding_medium)
+fun LoginScreen(navController: NavController) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var passwordVisible by remember { mutableStateOf(false) }
 
-    if (loginUiState.isLoginSuccess) {
+    val backgroundGradient = Brush.verticalGradient(
+        colors = listOf(Color(0xFFEBF4FA), Color.White),
+        startY = 0f,
+        endY = 1500f
+    )
 
-        navController.navigate(Routes.HOME) {
-            popUpTo(Routes.LOGIN) {
-                inclusive = true
-            }
-            launchSingleTop = true
-        }
-    }
-
-    Column(
+    Box(
         modifier = Modifier
-            .statusBarsPadding()
-            .verticalScroll(rememberScrollState())
-            .safeDrawingPadding()
-            .padding(mediumPadding),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+            .fillMaxSize()
+            .background(backgroundGradient)
     ) {
-
-        Text(
-            text = stringResource(R.string.app_name),
-            style = typography.titleLarge,
-        )
-
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(mediumPadding),
-            verticalArrangement = Arrangement.spacedBy(mediumPadding),
+                .fillMaxSize()
+                .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            Spacer(modifier = Modifier.height(80.dp))
 
-            LoginInput(
-                userTypeUsername = loginViewModel.userTypeUsername,
-                onUserUsernameChanged = { loginViewModel.updateTypeUsername(it) },
-                isInputUsernameEmpty = loginUiState.isInputUsernameEmpty,
-                userTypePassword = loginViewModel.userTypePassword,
-                onUserPasswordChanged = { loginViewModel.updateTypePassword(it) },
-                isInputPasswordEmpty = loginUiState.isInputPasswordEmpty,
-                passwordVisible = loginUiState.passwordVisible,
-                loginViewModel = loginViewModel,
-            )
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(Color.White, RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Email,
+                    contentDescription = "Logo",
+                    tint = Color(0xFF0D47A1),
+                    modifier = Modifier.size(32.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "Belum punya akun?",
-                fontSize = 16.sp
+                text = "Selamat Datang",
+                fontSize = 28.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = Color(0xFF0D47A1)
             )
 
-            TextButton(
-                onClick = {
-                    navController.navigate(Routes.REGISTER)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "Masuk untuk mengelola keuanganmu dengan mudah.",
+                fontSize = 14.sp,
+                color = Color(0xFF5F6368),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp)
+                ) {
+                    Text(text = "Email", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFF4F6F9),
+                            unfocusedContainerColor = Color(0xFFF4F6F9),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        leadingIcon = {
+                            Icon(Icons.Default.Email, contentDescription = "Email", tint = Color(0xFFBDBDBD))
+                        },
+                        placeholder = {
+                            Text("pengguna@gmail.com", color = Color(0xFFBDBDBD), fontSize = 14.sp)
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(text = "Password", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFF4F6F9),
+                            unfocusedContainerColor = Color(0xFFF4F6F9),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        leadingIcon = {
+                            Icon(Icons.Default.Lock, contentDescription = "Password", tint = Color(0xFFBDBDBD))
+                        },
+                        placeholder = {
+                            Text("••••••••", color = Color(0xFFBDBDBD), fontSize = 14.sp)
+                        },
+                        singleLine = true,
+                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    )
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    Button(
+                        onClick = { },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+                        shape = RoundedCornerShape(25.dp),
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0D47A1))
+                    ) {
+                        Text(text = "Login", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+                    }
                 }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Row(
+                modifier = Modifier.padding(bottom = 32.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Daftar Sekarang")
-            }
-
-        }
-
-    }
-}
-
-@Composable
-fun LoginInput(
-    userTypeUsername : String,
-    onUserUsernameChanged : (String) -> Unit,
-    isInputUsernameEmpty : Boolean,
-    userTypePassword : String,
-    onUserPasswordChanged : (String) -> Unit,
-    isInputPasswordEmpty : Boolean,
-    passwordVisible : Boolean,
-    loginViewModel: LoginViewModel
-){
-    OutlinedTextField(
-        value = userTypeUsername,
-        singleLine = true,
-        shape = shapes.large,
-        modifier = Modifier.fillMaxWidth(),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = colorScheme.surface,
-            unfocusedContainerColor = colorScheme.surface,
-            disabledContainerColor = colorScheme.surface,
-        ),
-        onValueChange = onUserUsernameChanged,
-        label = {
-            if (isInputUsernameEmpty) {
-                Text("Inputan username / Email kosong")
-            } else {
-                Text("Username / Email")
-            }
-        } ,
-        isError = isInputUsernameEmpty,
-        keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {  }
-        )
-    )
-
-    OutlinedTextField(
-        value = userTypePassword,
-        singleLine = true,
-        shape = shapes.large,
-        modifier = Modifier.fillMaxWidth(),
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = colorScheme.surface,
-            unfocusedContainerColor = colorScheme.surface,
-            disabledContainerColor = colorScheme.surface,
-        ),
-        onValueChange = onUserPasswordChanged,
-        label = {
-            if (isInputPasswordEmpty) {
-                Text("Inputan password kosong")
-            } else {
-                Text("Password")
-            }
-        } ,
-        isError = isInputPasswordEmpty,
-        visualTransformation =
-            if (passwordVisible){
-                VisualTransformation.None
-            } else {
-                PasswordVisualTransformation()
-            }
-        ,
-        keyboardOptions = KeyboardOptions.Default.copy(
-            imeAction = ImeAction.Done
-        ),
-        keyboardActions = KeyboardActions(
-            onDone = {  }
-        ),
-        trailingIcon = {
-            val icon = if (passwordVisible){
-                Icons.Default.Favorite
-            } else {
-                Icons.Default.FavoriteBorder
-            }
-
-            IconButton(
-                onClick = { loginViewModel.updateVisiblePassword(!passwordVisible) }
-            ) {
-                Icon(imageVector = icon, contentDescription = "Visibility")
+                Text(text = "Belum punya akun? ", fontSize = 14.sp, color = Color(0xFF5F6368))
+                Text(
+                    text = "Daftar sekarang",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color(0xFF2F80ED),
+                    modifier = Modifier.clickable { navController.navigate(Routes.REGISTER) }
+                )
             }
         }
-    )
-
-    Button(
-        modifier = Modifier.fillMaxWidth(),
-        onClick = { loginViewModel.loginUser(userTypeUsername, userTypePassword) }
-    ) {
-        Text(
-            text = stringResource(R.string.login_button),
-            fontSize = 16.sp
-        )
     }
-
 }
