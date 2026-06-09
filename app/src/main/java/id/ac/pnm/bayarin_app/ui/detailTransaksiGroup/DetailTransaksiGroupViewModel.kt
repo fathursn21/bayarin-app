@@ -8,8 +8,12 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import id.ac.pnm.bayarin_app.ContextApplication
+import id.ac.pnm.bayarin_app.data.AppDatabase
 import id.ac.pnm.bayarin_app.data.model.Groups
+import id.ac.pnm.bayarin_app.data.model.Notes
 import id.ac.pnm.bayarin_app.data.model.Users
+import id.ac.pnm.bayarin_app.data.repository.NotesRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,6 +25,7 @@ import kotlinx.coroutines.tasks.await
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
 
 private const val TAG = "DetailTransaksiGroupViewModel"
 
@@ -32,6 +37,11 @@ class DetailTransaksiGroupViewModel : ViewModel() {
 
     private val _uiState = MutableStateFlow(DetailTransaksiGroupUiState())
     val uiState: StateFlow<DetailTransaksiGroupUiState> = _uiState.asStateFlow()
+
+    private val roomDb = AppDatabase.getDatabase(ContextApplication.instance)
+    private val notesRepository = NotesRepository(
+        roomDb.notesDao()
+    )
 
     private var groupDetailListener: ValueEventListener? = null
     private var targetGroupId: String = ""
@@ -125,6 +135,54 @@ class DetailTransaksiGroupViewModel : ViewModel() {
                     .child("statuses").child(memberId)
                     .setValue(BillStatus.SUDAH_BAYAR.name)
                     .await()
+
+                //  ambil data group berdsarkan targetGroupId
+                val groupSnapshot = dbRef.child("groups")
+                    .child(targetGroupId)
+                    .get()
+                    .await()
+
+//                ambil nama group dari snapshot group data
+                val groupName = groupSnapshot
+                    .child("name")
+                    .getValue(String::class.java)
+                    .orEmpty()
+
+//                ambil data nominal meber berdasarkan meber id nya dari snapshot group
+                val nominalMember = (groupSnapshot
+                    .child("members")
+                    .child(memberId)
+                    .value as? Number)
+                    ?.toLong() ?: 0L
+
+                val notesExpense = Notes(
+                    id = UUID.randomUUID().toString(),
+                    userId = memberId,
+                    expense = true,
+                    nominal = nominalMember,
+                    category = "Group",
+                    date = System.currentTimeMillis(),
+                    note = groupName,
+                    createdAt = System.currentTimeMillis(),
+                    isSynced = 0
+                )
+
+                notesRepository.createNotes(notesExpense)
+
+                val notesIncome = Notes(
+                    id = UUID.randomUUID().toString(),
+                    userId = currentUid,
+                    expense = false,
+                    nominal = nominalMember,
+                    category = "Group",
+                    date = System.currentTimeMillis(),
+                    note = groupName,
+                    createdAt = System.currentTimeMillis(),
+                    isSynced = 0
+                )
+
+                notesRepository.createNotes(notesIncome)
+
             } catch (e: Exception) {
                 Log.e(TAG, "Gagal menandai sudah bayar", e)
             }

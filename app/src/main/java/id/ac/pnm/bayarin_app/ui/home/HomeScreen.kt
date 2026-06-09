@@ -463,7 +463,7 @@ fun HomeBottomNavBar(
 
 
 fun formatRupiah(value: Long): String {
-    if (value == 0L) return ""
+    if (value == 0L) return "Rp 0"
 
     return "Rp " + NumberFormat
         .getNumberInstance(Locale("id", "ID"))

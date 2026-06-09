@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import androidx.navigation.NavController
 import id.ac.pnm.bayarin_app.data.model.Groups
 import id.ac.pnm.bayarin_app.ui.home.formatRupiah
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
+import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesViewModel
 
 val BluePrimary = Color(0xFF0056D2)
 val BlueLightBg = Color(0xFFF4F7FC)
@@ -38,9 +40,14 @@ val LightGrayBorder = Color(0xFFEAEAEA)
 @Composable
 fun GroupScreen(
     navController: NavController,
-    viewModel: GroupViewModel = viewModel()
+    viewModel: GroupViewModel = viewModel(),
+    newNotesViewModel : NewNotesViewModel = viewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
+
+    LaunchedEffect(Unit) {
+        newNotesViewModel.sync()
+    }
 
     Scaffold(
         containerColor = BlueLightBg,
