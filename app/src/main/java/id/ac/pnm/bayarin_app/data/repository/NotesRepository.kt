@@ -27,8 +27,12 @@ class NotesRepository(
         notesDao.insert(notes)
     }
 
-    suspend fun getAllNotes(limit : Int): Flow<List<Notes>> {
-        return notesDao.getAllNotes(limit)
+    fun getAllNotes(limit : Int): Flow<List<Notes>> {
+        if (limit == 0){
+            return notesDao.getAllNotes()
+        } else {
+            return notesDao.getLimitNotes(limit)
+        }
     }
 
     suspend fun sync() {
