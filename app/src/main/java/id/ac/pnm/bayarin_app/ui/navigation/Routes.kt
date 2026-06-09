@@ -8,5 +8,8 @@ object Routes {
     const val HOME = "home"
     const val GROUP = "group"
     const val REMINDER = "reminder"
+    const val TAMBAH_GROUP = "tambah_group"
+    const val TAMBAH_TEMAN = "tambah_teman"
+    const val DAFTAR_TEMAN = "daftar_teman"
 
 }

@@ -2,6 +2,7 @@ package id.ac.pnm.bayarin_app.ui.home
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -54,11 +55,14 @@ data class TransactionData(
 fun HomeScreen(
     navController: NavController,
     newNotesViewModel : NewNotesViewModel = viewModel(),
+    homeViewModel: HomeViewModel = viewModel()
 ) {
 
     val newNotesUiState by newNotesViewModel.uiState.collectAsState()
+    val homeUiState by homeViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
+        newNotesViewModel.sync()
         newNotesViewModel.loadNotes()
     }
 
@@ -108,8 +112,19 @@ fun HomeScreen(
         ) {
             item { Spacer(modifier = Modifier.height(4.dp)) }
 
-            item { SummaryCard() }
-            item { QuickActionsRow() }
+            item {
+                SummaryCard(
+                income = homeUiState.income,
+                expense = homeUiState.expense
+
+            ) }
+            item {
+                QuickActionsRow(
+                    onAddFriendClick = {
+                        navController.navigate(Routes.TAMBAH_TEMAN)
+                    }
+                )
+            }
             item { ExpenseChartCard() }
 
             item {
@@ -124,6 +139,10 @@ fun HomeScreen(
             }
 
             when {
+                newNotesUiState.isLoading -> {
+                    item { CircularProgressIndicator() }
+                }
+
                 newNotesUiState.error != "" -> {
                     item { Text(newNotesUiState.error) }
                 } else -> {
@@ -145,7 +164,10 @@ fun HomeScreen(
 }
 
 @Composable
-fun SummaryCard() {
+fun SummaryCard(
+    income : Long = 0,
+    expense : Long = 0
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -168,14 +190,14 @@ fun SummaryCard() {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Text(text = "Pemasukan", color = Color.White, fontSize = 12.sp)
                     }
-                    Text(text = "Rp 15.000.000", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = formatRupiah(income), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Text(text = "Pengeluaran", color = Color.White, fontSize = 12.sp)
                     }
-                    Text(text = "Rp 2.550.000", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = formatRupiah(expense), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
@@ -183,19 +205,33 @@ fun SummaryCard() {
 }
 
 @Composable
-fun QuickActionsRow() {
+fun QuickActionsRow(
+    onAddFriendClick: () -> Unit
+) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        ActionItem(icon = Icons.Default.Add, title = "Tambah\nTransaksi")
-        ActionItem(icon = Icons.Default.Person, title = "Buat\nGrup")
-        ActionItem(icon = Icons.Default.MailOutline, title = "Tagih\nTeman")
+        ActionItem(
+            icon = Icons.Default.Person,
+            title = "Tambah\nTeman",
+            onClick = onAddFriendClick
+        )
+        ActionItem(
+            icon = Icons.Default.Person,
+            title = "Buat\nGrup",
+            onClick = { /* TODO */ }
+        )
+        ActionItem(
+            icon = Icons.Default.MailOutline,
+            title = "Tagih\nTeman",
+            onClick = { /* TODO */ }
+        )
     }
 }
 
 @Composable
-fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String) {
+fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: String, onClick: () -> Unit) {
     Card(
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -203,6 +239,8 @@ fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: Str
         modifier = Modifier
             .width(100.dp)
             .height(90.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() }
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),

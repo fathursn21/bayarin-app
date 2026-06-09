@@ -9,26 +9,34 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.database
+import id.ac.pnm.bayarin_app.ContextApplication
+import id.ac.pnm.bayarin_app.data.AppDatabase
 import id.ac.pnm.bayarin_app.data.model.Notes
 import id.ac.pnm.bayarin_app.data.repository.NotesRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.util.UUID
 
 class NewNotesViewModel : ViewModel() {
-    private val repository = NotesRepository()
+
+    private val roomDb = AppDatabase.getDatabase(ContextApplication.instance)
+
+    private val repository = NotesRepository(
+        roomDb.notesDao()
+    )
 
     private val _uiState = MutableStateFlow(NewNotesUiState())
     val uiState: StateFlow<NewNotesUiState> = _uiState.asStateFlow()
-
-    private val database = Firebase.database.reference
 
     var showExpense by mutableStateOf(true)
         private set
@@ -72,90 +80,158 @@ class NewNotesViewModel : ViewModel() {
         userTypeNote = userType
     }
 
+    fun sync() {
+        viewModelScope.launch {
+            repository.sync()
+        }
+    }
+
+    fun loadNotes() {
+
+        viewModelScope.launch {
+
+            repository.getAllNotes(10)
+                .collect { notes ->
+
+                    _uiState.update {
+                        it.copy(
+                            notes = notes,
+                            isLoading = false,
+                            error = ""
+                        )
+                    }
+
+                }
+        }
+    }
+
     fun addNotes(expense : Boolean, nominal : String, category : String, date : Long, note : String){
 
-        if (nominal.isNotEmpty() && category.isNotEmpty() && date != 0L){
+        if (!validateInput(
+                nominal = nominal,
+                category = category,
+                date = date
+            )
+        ) {
+            Log.d(TAG, "Data notes tidak valid")
+            return
+        }
 
-            val uid = Firebase.auth.currentUser?.uid ?: ""
+        viewModelScope.launch {
 
-            val note = Notes(
+            val notes = Notes(
+                id = UUID.randomUUID().toString(),
                 expense = expense,
                 nominal = nominal.toLong(),
                 category = category,
                 date = date,
                 note = note,
-                createdAt = System.currentTimeMillis()
+                createdAt = System.currentTimeMillis(),
+                isSynced = 0
             )
 
-            database
-                .child("notes")
-                .child(uid)
-                .push()
-                .setValue(note)
-                .addOnSuccessListener {
-                    Log.d(TAG, "Data berhasil disimpan")
-                }
-                .addOnFailureListener {
-                    Log.e(TAG, "Gagal simpan", it)
-                }
+            repository.createNotes(notes)
 
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isSuccessfully = true,
-                )
-            }
-
-        } else if (nominal.isEmpty()){
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputNominalEmpty = true,
-                )
-            }
-        } else if (category.isEmpty()){
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputCategoryEmpty = true,
-                )
-            }
-        } else if (date == 0L){
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputDateEmpty = true,
-                )
-            }
-        } else {
-            _uiState.update { currentState ->
-                currentState.copy(
-                    isInputNominalEmpty = true,
-                    isInputCategoryEmpty = true,
-                    isInputDateEmpty = true,
+            _uiState.update {
+                it.copy(
+                    isSuccessfully = true
                 )
             }
         }
 
     }
 
-    fun loadNotes() {
-        val uid = Firebase.auth.currentUser?.uid ?: return
+//    fun loadNotes() {
+//        val uid = Firebase.auth.currentUser?.uid ?: return
+//
+//        repository.observeNotes(uid = uid, limit = 10, onResult = {
+//                notes ->
+//            _uiState.update {
+//                it.copy(
+//                    notes = notes,
+//                    isLoading = false,
+//                    error = ""
+//                )
+//            }
+//        },
+//            onError = { message ->
+//
+//                _uiState.update {
+//                    it.copy(
+//                        isLoading = false,
+//                        error = message
+//                    )
+//                }
+//            })
+//    }
 
-        repository.observeNotes(uid = uid, limit = 10, onResult = {
-            notes ->
-            _uiState.update {
-                it.copy(
-                    notes = notes,
-                    isLoading = false,
-                    error = ""
-                )
-            }
-        },
-            onError = { message ->
+//    fun addNotes(expense : Boolean, nominal : String, category : String, date : Long, note : String){
+//
+//        if (!validateInput(
+//                nominal = nominal,
+//                category = category,
+//                date = date
+//            )
+//        ) {
+//            Log.d(TAG, "Data notes tidak valid")
+//            return
+//        }
+//
+//            repository.createNotes(
+//                expense = expense,
+//                nominal = nominal,
+//                category = category,
+//                date = date,
+//                note = note,
+//                onSuccess = {
+//                    Log.d(TAG, "Data berhasil disimpan")
+//
+//                    _uiState.update { currentState ->
+//                        currentState.copy(
+//                            isSuccessfully = true,
+//                        )
+//                    }
+//                },
+//                onError = { exception ->
+//
+//                    Log.e(TAG, "Gagal simpan", exception)
+//
+//                    _uiState.update {
+//                        it.copy(
+//                            isSuccessfully = false
+//                        )
+//                    }
+//                }
+//            )
+//    }
 
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        error = message
-                    )
-                }
-            })
+    private fun validateInput(
+        nominal: String,
+        category: String,
+        date: Long
+    ): Boolean {
+
+        val nominalValue = nominal.toLongOrNull()
+
+        val isNominalValid =
+            nominalValue != null && nominalValue > 0
+
+        val isCategoryValid =
+            category.isNotBlank()
+
+        val isDateValid =
+            date != 0L
+
+        _uiState.update {
+            it.copy(
+                isInputNominalEmpty = !isNominalValid,
+                isInputCategoryEmpty = !isCategoryValid,
+                isInputDateEmpty = !isDateValid
+            )
+        }
+
+        return isNominalValid &&
+                isCategoryValid &&
+                isDateValid
     }
 }
