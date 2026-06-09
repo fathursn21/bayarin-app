@@ -87,10 +87,11 @@ class NewNotesViewModel : ViewModel() {
     }
 
     fun loadNotes() {
+        val uid = Firebase.auth.currentUser?.uid ?: return
 
         viewModelScope.launch {
 
-            repository.getAllNotes(10)
+            repository.getAllNotes(limit = 10, uid = uid)
                 .collect { notes ->
 
                     _uiState.update {
@@ -117,10 +118,13 @@ class NewNotesViewModel : ViewModel() {
             return
         }
 
+        val uid = Firebase.auth.currentUser?.uid ?: return
+
         viewModelScope.launch {
 
             val notes = Notes(
                 id = UUID.randomUUID().toString(),
+                userId = uid,
                 expense = expense,
                 nominal = nominal.toLong(),
                 category = category,

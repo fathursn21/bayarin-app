@@ -9,7 +9,7 @@ import id.ac.pnm.bayarin_app.data.model.Notes
 import kotlin.also
 import kotlin.jvm.java
 
-@Database(entities = [Notes::class], version = 1)
+@Database(entities = [Notes::class], version = 2)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun notesDao() : NotesDao
 
@@ -22,7 +22,7 @@ abstract class AppDatabase : RoomDatabase() {
                 applicationContext,
                 AppDatabase::class.java, "bayarin_app"
             )
-//                .fallbackToDestructiveMigration()
+                .fallbackToDestructiveMigration()
                 .build()
                 .also { INSTANCE = it }
 
