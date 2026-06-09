@@ -1,12 +1,16 @@
 package id.ac.pnm.bayarin_app.ui.navigation
 
+import android.R.attr.type
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import id.ac.pnm.bayarin_app.ui.auth.login.LoginScreen
 import id.ac.pnm.bayarin_app.ui.auth.register.RegisterScreen
 import id.ac.pnm.bayarin_app.ui.daftarTeman.DaftarTemanScreen
+import id.ac.pnm.bayarin_app.ui.detailTransaksiGroup.DetailTransaksiGroupScreen
 import id.ac.pnm.bayarin_app.ui.profile.ProfileScreen
 import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
 import id.ac.pnm.bayarin_app.ui.group.GroupScreen
@@ -72,6 +76,19 @@ fun AppNavigation(){
                 onNavigateToDaftarTeman = {
                      navController.navigate(Routes.DAFTAR_TEMAN)
                 }
+            )
+        }
+
+        composable(
+            route = "${Routes.DETAIL_TRANSAKSI_GROUP}/{groupId}",
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+
+            DetailTransaksiGroupScreen(
+                groupId = groupId,
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
