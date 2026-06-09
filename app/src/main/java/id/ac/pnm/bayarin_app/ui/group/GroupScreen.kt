@@ -9,19 +9,21 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import id.ac.pnm.bayarin_app.data.model.Groups
+import id.ac.pnm.bayarin_app.ui.home.formatRupiah
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 val BluePrimary = Color(0xFF0056D2)
@@ -31,28 +33,13 @@ val ExpenseRed = Color(0xFFD32F2F)
 val TextGray = Color(0xFF5F6368)
 val LightGrayBorder = Color(0xFFEAEAEA)
 
-data class GroupData(
-    val name: String,
-    val memberCount: Int,
-    val payerInfo: String,
-    val amount: String,
-    val isOwe: Boolean,
-    val icon: ImageVector
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: GroupViewModel = viewModel()
 ) {
-    //data dummy
-    val groupList = listOf(
-        GroupData("Kos Mojoarum", 4, "DARI KAMU", "Rp150.000", true, Icons.Default.Home),
-        GroupData("Kopag Handayani", 6, "DARI ALAN", "Rp45.000", false, Icons.Default.ShoppingCart),
-        GroupData("Bundle Kuronami", 4, "DARI FATHUR", "Rp900.000", false, Icons.Default.ShoppingCart),
-        GroupData("Project Kampus", 3, "DARI KEVIN", "Rp75.000", false, Icons.Default.Build),
-        GroupData("Patungan Futsal", 10, "DARI KAMU", "Rp20.000", true, Icons.Default.Place)
-    )
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = BlueLightBg,
@@ -82,42 +69,68 @@ fun GroupScreen(
             GroupBottomNavBar(navController)
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
-        ) {
-            item {
-                Button(
-                    onClick = {navController.navigate(Routes.TAMBAH_GROUP)},
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BluePrimary),
-                    shape = RoundedCornerShape(percent = 50)
-                ) {
-                    Text(
-                        text = "Tambah Group",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = Color.White
-                    )
+        when {
+            uiState.isLoading -> {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = BluePrimary)
                 }
             }
+            uiState.errorMessage.isNotEmpty() -> {
+                Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+                    Text(text = uiState.errorMessage, color = Color.Red, fontSize = 14.sp)
+                }
+            }
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
+                ) {
+                    item {
+                        Button(
+                            onClick = { navController.navigate(Routes.TAMBAH_GROUP) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = BluePrimary),
+                            shape = RoundedCornerShape(percent = 50)
+                        ) {
+                            Text(
+                                text = "Tambah Group",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = Color.White
+                            )
+                        }
+                    }
 
-            //daftar grup
-            items(groupList) { group ->
-                GroupCardItem(group = group)
+                    if (uiState.groups.isEmpty()) {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Kamu belum bergabung di grup manapun.", color = Color.Gray, fontSize = 14.sp)
+                            }
+                        }
+                    } else {
+                        // Iterasi list grup asli dari Realtime Database
+                        items(uiState.groups) { group ->
+                            GroupCardItem(group = group)
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun GroupCardItem(group: GroupData) {
+fun GroupCardItem(group: Groups) {
+    val totalNominal = group.members.values.sum()
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -137,7 +150,7 @@ fun GroupCardItem(group: GroupData) {
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = group.icon,
+                        imageVector = Icons.Default.Person,
                         contentDescription = null,
                         tint = BluePrimary,
                         modifier = Modifier.size(24.dp)
@@ -161,7 +174,7 @@ fun GroupCardItem(group: GroupData) {
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${group.memberCount} Orang",
+                            text = "${group.members.size} Orang",
                             color = TextGray,
                             fontSize = 12.sp
                         )
@@ -181,15 +194,15 @@ fun GroupCardItem(group: GroupData) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = group.payerInfo,
+                    text = if (totalNominal > 0) "TOTAL PATUNGAN" else "BELUM ADA TRANSAKSI",
                     color = TextGray,
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 0.5.sp
                 )
                 Text(
-                    text = group.amount,
-                    color = if (group.isOwe) ExpenseRed else BluePrimary,
+                    text = formatRupiah(totalNominal),
+                    color = if (totalNominal > 0) BluePrimary else TextGray,
                     fontWeight = FontWeight.ExtraBold,
                     fontSize = 18.sp
                 )
@@ -199,9 +212,7 @@ fun GroupCardItem(group: GroupData) {
 }
 
 @Composable
-fun GroupBottomNavBar(
-    navController: NavController
-) {
+fun GroupBottomNavBar(navController: NavController) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -218,27 +229,32 @@ fun GroupBottomNavBar(
                 }
             }
         )
+
         NavigationBarItem(
             icon = { Icon(Icons.Default.Person, contentDescription = "Group") },
             label = { Text("Group") },
             selected = true,
-            onClick = { /* TODO */ },
+            onClick = { /* TODO: Navigasi Group jika diperlukan */ },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = BluePrimary,
                 selectedTextColor = BluePrimary,
                 indicatorColor = BlueIconBg
             )
         )
+
         NavigationBarItem(
             icon = { Icon(Icons.Default.AddCircle, contentDescription = "Tambah") },
             label = { Text("Tambah") },
             selected = false,
-            onClick = {navController.navigate(Routes.NEW_NOTES) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }}
+            onClick = {
+                navController.navigate(Routes.NEW_NOTES) {
+                    popUpTo(navController.graph.startDestinationId) { saveState = true }
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }
         )
+
         NavigationBarItem(
             icon = { Icon(Icons.Default.DateRange, contentDescription = "Pengingat") },
             label = { Text("Pengingat") },
@@ -251,6 +267,7 @@ fun GroupBottomNavBar(
                 }
             }
         )
+
         NavigationBarItem(
             icon = { Icon(Icons.Default.AccountCircle, contentDescription = "Profile") },
             label = { Text("Profile") },
@@ -265,3 +282,4 @@ fun GroupBottomNavBar(
         )
     }
 }
+
