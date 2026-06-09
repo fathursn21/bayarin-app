@@ -97,8 +97,13 @@ fun ProfileScreen(
                             .size(100.dp)
                             .background(Color(0xFFE0E5EC), CircleShape)
                     ) {
+                        // Mengambil huruf pertama dari nama untuk dijadikan Avatar
                         Text(
-                            text = "F",
+                            text = if (profileUiState.user.name.isNotEmpty()) {
+                                profileUiState.user.name.take(1).uppercase()
+                            } else {
+                                "-" // Tampilkan strip jika nama belum termuat
+                            },
                             fontSize = 40.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF5F6368)
@@ -124,14 +129,18 @@ fun ProfileScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Menampilkan nama lengkap dari database
                 Text(
-                    text = "Fathur",
+                    text = if (profileUiState.user.name.isNotEmpty()) {
+                        profileUiState.user.name
+                    } else {
+                        "Memuat nama..."
+                    },
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF1A1A1A)
                 )
             }
-
             Spacer(modifier = Modifier.height(32.dp))
 
             // --- 3. BAGIAN MENU CARD ---
