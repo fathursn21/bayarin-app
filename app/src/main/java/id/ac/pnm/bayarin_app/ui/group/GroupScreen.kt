@@ -2,6 +2,7 @@ package id.ac.pnm.bayarin_app.ui.group
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -119,7 +120,12 @@ fun GroupScreen(
                     } else {
                         // Iterasi list grup asli dari Realtime Database
                         items(uiState.groups) { group ->
-                            GroupCardItem(group = group)
+                            GroupCardItem(
+                                group = group,
+                                onClick = {
+                                    navController.navigate("${Routes.DETAIL_TRANSAKSI_GROUP}/${group.id}")
+                                }
+                            )
                         }
                     }
                 }
@@ -129,10 +135,13 @@ fun GroupScreen(
 }
 
 @Composable
-fun GroupCardItem(group: Groups) {
+fun GroupCardItem(
+    group: Groups,
+    onClick: () -> Unit
+) {
     val totalNominal = group.members.values.sum()
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().clickable { onClick() },
         colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(12.dp),
         border = BorderStroke(1.dp, LightGrayBorder),
