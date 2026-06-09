@@ -173,7 +173,7 @@ fun LoginScreen(
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
                             val icon = if (loginUiState.passwordVisible) Icons.Default.Lock else Icons.Default.Lock // Silakan sesuaikan dengan icon Visibility jika ada
-                            IconButton(onClick = { viewModel.updateVisiblePassword(!loginUiState.passwordVisible) }) {
+                            IconButton(onClick = { loginViewModel.updateVisiblePassword(!loginUiState.passwordVisible) }) {
                                 Icon(imageVector = icon, contentDescription = "Toggle Password", tint = Color(0xFFBDBDBD))
                             }
                         }
