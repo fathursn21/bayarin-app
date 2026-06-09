@@ -60,6 +60,7 @@ fun HomeScreen(
     val newNotesUiState by newNotesViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
+        newNotesViewModel.sync()
         newNotesViewModel.loadNotes()
     }
 

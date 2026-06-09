@@ -29,20 +29,28 @@ import id.ac.pnm.bayarin_app.ui.navigation.Routes
 @Composable
 fun LoginScreen(
     navController: NavController,
-    viewModel: LoginViewModel = viewModel()
+    loginViewModel: LoginViewModel = viewModel()
 ) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
-    val uiState by viewModel.uiState.collectAsState()
+    val loginUiState by loginViewModel.uiState.collectAsState()
+
+    if (loginUiState.isLoginSuccess) {
+
+        navController.navigate(Routes.HOME) {
+            popUpTo(Routes.LOGIN) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+    }
+
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(Color(0xFFEBF4FA), Color.White),
         startY = 0f,
         endY = 1500f
     )
 
-    LaunchedEffect(uiState.isLoginSuccess) {
-        if (uiState.isLoginSuccess) {
+    LaunchedEffect(loginUiState.isLoginSuccess) {
+        if (loginUiState.isLoginSuccess) {
             navController.navigate(Routes.HOME) {
                 popUpTo(Routes.LOGIN) {
                     inclusive = true
@@ -112,8 +120,8 @@ fun LoginScreen(
                     Text(text = "Email", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        value = viewModel.userTypeUsername,
-                        onValueChange = { viewModel.updateTypeUsername(it) },
+                        value = loginViewModel.userTypeUsername,
+                        onValueChange = { loginViewModel.updateTypeUsername(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -143,9 +151,8 @@ fun LoginScreen(
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        //state dari ViewModel
-                        value = viewModel.userTypePassword,
-                        onValueChange = { viewModel.updateTypePassword(it) },
+                        value = loginViewModel.userTypePassword,
+                        onValueChange = { loginViewModel.updateTypePassword(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -162,11 +169,11 @@ fun LoginScreen(
                         },
                         singleLine = true,
                         // Visibility password oleh UI State ViewModel
-                        visualTransformation = if (uiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (loginUiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         trailingIcon = {
-                            val icon = if (uiState.passwordVisible) Icons.Default.Lock else Icons.Default.Lock // Silakan sesuaikan dengan icon Visibility jika ada
-                            IconButton(onClick = { viewModel.updateVisiblePassword(!uiState.passwordVisible) }) {
+                            val icon = if (loginUiState.passwordVisible) Icons.Default.Lock else Icons.Default.Lock // Silakan sesuaikan dengan icon Visibility jika ada
+                            IconButton(onClick = { viewModel.updateVisiblePassword(!loginUiState.passwordVisible) }) {
                                 Icon(imageVector = icon, contentDescription = "Toggle Password", tint = Color(0xFFBDBDBD))
                             }
                         }
@@ -175,12 +182,7 @@ fun LoginScreen(
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = {
-                            viewModel.loginUser(
-                                viewModel.userTypeUsername,
-                                viewModel.userTypePassword
-                            )
-                        },
+                        onClick = { loginViewModel.loginUser(loginViewModel.userTypeUsername, loginViewModel.userTypePassword) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
