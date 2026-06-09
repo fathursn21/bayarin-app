@@ -55,9 +55,11 @@ data class TransactionData(
 fun HomeScreen(
     navController: NavController,
     newNotesViewModel : NewNotesViewModel = viewModel(),
+    homeViewModel: HomeViewModel = viewModel()
 ) {
 
     val newNotesUiState by newNotesViewModel.uiState.collectAsState()
+    val homeUiState by homeViewModel.uiState.collectAsState()
 
     LaunchedEffect(Unit) {
         newNotesViewModel.sync()
@@ -110,7 +112,12 @@ fun HomeScreen(
         ) {
             item { Spacer(modifier = Modifier.height(4.dp)) }
 
-            item { SummaryCard() }
+            item {
+                SummaryCard(
+                income = homeUiState.income,
+                expense = homeUiState.expense
+
+            ) }
             item {
                 QuickActionsRow(
                     onAddFriendClick = {
@@ -157,7 +164,10 @@ fun HomeScreen(
 }
 
 @Composable
-fun SummaryCard() {
+fun SummaryCard(
+    income : Long = 0,
+    expense : Long = 0
+) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -180,14 +190,14 @@ fun SummaryCard() {
                         Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Text(text = "Pemasukan", color = Color.White, fontSize = 12.sp)
                     }
-                    Text(text = "Rp 15.000.000", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = formatRupiah(income), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
                 Column {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                         Text(text = "Pengeluaran", color = Color.White, fontSize = 12.sp)
                     }
-                    Text(text = "Rp 2.550.000", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    Text(text = formatRupiah(expense), color = Color.White, fontWeight = FontWeight.Bold, fontSize = 16.sp)
                 }
             }
         }
