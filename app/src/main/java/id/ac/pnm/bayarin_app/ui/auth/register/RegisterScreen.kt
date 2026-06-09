@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -150,6 +151,28 @@ fun RegisterScreen(
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
+
+                    // INPUT NOMOR TELEPON
+                    Text(text = "Nomor Telepon", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    TextField(
+                        value = registerViewModel.userTypeTelp,
+                        onValueChange = { registerViewModel.updateTypeTelp(it) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color(0xFFF4F6F9),
+                            unfocusedContainerColor = Color(0xFFF4F6F9),
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent
+                        ),
+                        leadingIcon = { Icon(Icons.Default.Call, contentDescription = "Telepon", tint = Color(0xFFBDBDBD)) },
+                        placeholder = { Text("081xxxxxxxxx", color = Color(0xFFBDBDBD), fontSize = 14.sp) },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
 
                     // TOMBOL DAFTAR
                     Button(
