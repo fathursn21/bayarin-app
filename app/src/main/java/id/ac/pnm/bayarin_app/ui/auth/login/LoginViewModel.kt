@@ -68,21 +68,17 @@ class LoginViewModel: ViewModel() {
 
         } else if (userUsername.isEmpty()){
             _uiState.update { currentState ->
-                currentState.copy(
-                    isInputUsernameEmpty = true,
-                )
+                currentState.copy(isInputUsernameEmpty = true)
             }
-        } else if (userTypePassword.isEmpty()) {
+        } else if (userPassword.isEmpty()) {
             _uiState.update { currentState ->
-                currentState.copy(
-                    isInputPasswordEmpty = true,
-                )
+                currentState.copy(isInputPasswordEmpty = true)
             }
         } else {
             _uiState.update { currentState ->
                 currentState.copy(
                     isInputUsernameEmpty = true,
-                    isInputPasswordEmpty = true,
+                    isInputPasswordEmpty = true
                 )
             }
         }

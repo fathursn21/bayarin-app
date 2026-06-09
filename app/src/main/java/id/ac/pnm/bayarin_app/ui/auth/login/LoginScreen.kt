@@ -49,6 +49,17 @@ fun LoginScreen(
         endY = 1500f
     )
 
+    LaunchedEffect(loginUiState.isLoginSuccess) {
+        if (loginUiState.isLoginSuccess) {
+            navController.navigate(Routes.HOME) {
+                popUpTo(Routes.LOGIN) {
+                    inclusive = true
+                }
+                launchSingleTop = true
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -157,8 +168,15 @@ fun LoginScreen(
                             Text("••••••••", color = Color(0xFFBDBDBD), fontSize = 14.sp)
                         },
                         singleLine = true,
+                        // Visibility password oleh UI State ViewModel
                         visualTransformation = if (loginUiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                        trailingIcon = {
+                            val icon = if (loginUiState.passwordVisible) Icons.Default.Lock else Icons.Default.Lock // Silakan sesuaikan dengan icon Visibility jika ada
+                            IconButton(onClick = { viewModel.updateVisiblePassword(!loginUiState.passwordVisible) }) {
+                                Icon(imageVector = icon, contentDescription = "Toggle Password", tint = Color(0xFFBDBDBD))
+                            }
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))

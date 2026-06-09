@@ -4,10 +4,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -17,40 +17,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-
-data class FriendUser(
-    val id: String,
-    val name: String,
-    val username: String
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import id.ac.pnm.bayarin_app.data.model.Users
+import java.text.NumberFormat
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TambahGroupScreen(
     onNavigateBack: () -> Unit,
-    onGroupCreated: (groupName: String, members: List<FriendUser>) -> Unit
+    viewModel: TambahGroupViewModel = viewModel()
 ) {
     var groupName by remember { mutableStateOf("") }
-    var searchQuery by remember { mutableStateOf("") }
-    val selectedFriends = remember { mutableStateListOf<FriendUser>() }
+    var showSearchDialog by remember { mutableStateOf(false) }
 
-    val friendList = remember {
-        listOf(
-            FriendUser("1", "Denis", "@denisbeban"),
-            FriendUser("2", "Sopo", "@sopo"),
-            FriendUser("3", "Adit", "@adit"),
-            FriendUser("4", "Sopo", "@sopongiro"),
-            FriendUser("5", "Pak Hadji", "@hadji"),
-            FriendUser("6", "Ucup", "@ucup")
-        )
-    }
+    // State Map untuk menyimpan nominal per user ID (Key: userId, Value: Nominal String)
+    val memberNominals = remember { mutableStateMapOf<String, String>() }
 
-    // Filter daftar teman berdasarkan pencarian
-    val filteredFriends = friendList.filter {
-        it.name.contains(searchQuery, ignoreCase = true) ||
-                it.username.contains(searchQuery, ignoreCase = true)
+    // Mengambil state terpusat dari ViewModel
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Jika berhasil membuat grup, otomatis kembali ke halaman sebelumnya
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            viewModel.resetSuccessFlag()
+            onNavigateBack()
+        }
     }
 
     Scaffold(
@@ -77,10 +72,12 @@ fun TambahGroupScreen(
             ) {
                 Button(
                     onClick = {
-                        if (groupName.isNotBlank() && selectedFriends.isNotEmpty()) {
-                            onGroupCreated(groupName, selectedFriends)
+                        val convertedNominals = memberNominals.mapValues { (_, value) ->
+                            value.toLongOrNull() ?: 0L
                         }
+                        viewModel.createGroup(groupName, convertedNominals)
                     },
+                    enabled = groupName.isNotBlank() && uiState.selectedFriends.isNotEmpty() && !uiState.isCreatingGroup,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp)
@@ -89,9 +86,12 @@ fun TambahGroupScreen(
                         containerColor = Color(0xFF0A58CA),
                         disabledContainerColor = Color.LightGray
                     ),
-                    enabled = groupName.isNotBlank() && selectedFriends.isNotEmpty()
                 ) {
-                    Text("Buat Grup", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    if (uiState.isCreatingGroup) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Buat Grup", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
                 }
             }
         },
@@ -104,45 +104,13 @@ fun TambahGroupScreen(
                 .padding(horizontal = 16.dp)
         ) {
             Spacer(modifier = Modifier.height(16.dp))
-            // 1. Input Nama Grup
+
+            //Nama Grup
             OutlinedTextField(
                 value = groupName,
                 onValueChange = { groupName = it },
                 label = { Text("Nama Grup") },
-                placeholder = { Text("Cth: Patungan Ngopag, Beli Server Minecraft, dll") },
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                singleLine = true
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            //Tampilan Teman yang Terpilih
-            if (selectedFriends.isNotEmpty()) {
-                Text(
-                    text = "Anggota Terpilih (${selectedFriends.size})",
-                    fontWeight = FontWeight.SemiBold,
-                    fontSize = 14.sp,
-                    color = Color.Gray,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    items(selectedFriends) { friend ->
-                        SelectedFriendChip(friend = friend, onRemove = { selectedFriends.remove(it) })
-                    }
-                }
-                Spacer(modifier = Modifier.height(16.dp))
-            }
-
-            //Pencarian Teman
-            OutlinedTextField(
-                value = searchQuery,
-                onValueChange = { searchQuery = it },
-                placeholder = { Text("Cari nama atau username...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                placeholder = { Text("Cth: Patungan Ngopi, Server Minecraft, dll") },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
@@ -152,107 +120,255 @@ fun TambahGroupScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
-            //Daftar Teman
-            Text(
-                text = "Daftar Teman",
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 14.sp,
-                color = Color.Gray,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            LazyColumn(
-                modifier = Modifier.fillMaxSize()
+            //Baris Judul Anggota Grup & Tombol Tambah
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                items(filteredFriends) { friend ->
-                    val isSelected = selectedFriends.contains(friend)
-                    FriendListItem(
-                        friend = friend,
-                        isSelected = isSelected,
-                        onClick = {
-                            if (isSelected) {
-                                selectedFriends.remove(friend)
-                            } else {
-                                selectedFriends.add(friend)
-                            }
-                        }
+                Text(
+                    text = "Anggota Grup (${uiState.selectedFriends.size})",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 15.sp,
+                    color = Color.DarkGray
+                )
+
+                TextButton(onClick = { showSearchDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = "Tambah Anggota", modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Tambah", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            //Daftar Teman Yang Berhasil Ditambahkan beserta Input Nominal
+            if (uiState.selectedFriends.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "Belum ada anggota. Ketuk 'Tambah' untuk mencari.",
+                        color = Color.Gray,
+                        fontSize = 14.sp
                     )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    items(uiState.selectedFriends) { friend ->
+                        // Ambil nilai nominal dari map, jika belum ada berikan string kosong
+                        val currentNominal = memberNominals[friend.id] ?: ""
+
+                        AnggotaGrupRowItem(
+                            user = friend,
+                            nominalValue = currentNominal,
+                            onNominalChange = { newValue ->
+                                val cleanNumber = newValue.replace(".", "").filter { it.isDigit() }
+                                memberNominals[friend.id] = cleanNumber
+                            },
+                            onRemoveClick = {
+                                viewModel.toggleFriendSelection(friend)
+                                memberNominals.remove(friend.id)
+                            }
+                        )
+                    }
                 }
             }
         }
     }
+
+    // Pop-up Dialog Tambah Teman
+    if (showSearchDialog) {
+        AlertDialog(
+            onDismissRequest = {
+                showSearchDialog = false
+                viewModel.updateSearchQuery("")
+            },
+            title = {
+                Text("Cari & Tambah Anggota", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+            },
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 420.dp)
+                ) {
+                    OutlinedTextField(
+                        value = viewModel.searchQuery,
+                        onValueChange = { viewModel.updateSearchQuery(it) },
+                        placeholder = { Text("Cari nama atau email...") },
+                        leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Search") },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            unfocusedContainerColor = Color(0xFFF1F3F5),
+                            focusedContainerColor = Color.White
+                        )
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    LazyColumn(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (uiState.filteredFriends.isEmpty()) {
+                            item {
+                                Text("Teman tidak ditemukan", color = Color.Gray, fontSize = 14.sp)
+                            }
+                        } else {
+                            items(uiState.filteredFriends) { friend ->
+                                val isSelected = uiState.selectedFriends.contains(friend)
+                                FriendListItem(
+                                    user = friend,
+                                    isSelected = isSelected,
+                                    onClick = { viewModel.toggleFriendSelection(friend) }
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSearchDialog = false
+                        viewModel.updateSearchQuery("")
+                    }
+                ) {
+                    Text("Selesai", color = Color(0xFF0A58CA), fontWeight = FontWeight.Bold)
+                }
+            }
+        )
+    }
 }
 
 @Composable
-fun SelectedFriendChip(friend: FriendUser, onRemove: (FriendUser) -> Unit) {
-    Surface(
-        shape = RoundedCornerShape(16.dp),
-        color = Color(0xFFE7F1FF),
-        modifier = Modifier.clickable { onRemove(friend) }
+fun AnggotaGrupRowItem(
+    user: Users,
+    nominalValue: String,
+    onNominalChange: (String) -> Unit,
+    onRemoveClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.White),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp)
         ) {
-            Text(
-                text = friend.name.split(" ").first(),
-                color = Color(0xFF0A58CA),
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Hapus",
-                tint = Color(0xFF0A58CA),
-                modifier = Modifier.size(16.dp)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(Color(0xFFE7F1FF), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Person, contentDescription = null, tint = Color(0xFF0A58CA))
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = user.name, fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                    Text(text = user.email, color = Color.Gray, fontSize = 12.sp)
+                }
+
+                IconButton(onClick = onRemoveClick) {
+                    Icon(
+                        imageVector = Icons.Default.Clear,
+                        contentDescription = "Hapus Anggota",
+                        tint = Color.Red,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            //format rupiah
+            OutlinedTextField(
+                value = formatRupiahLocal(nominalValue),
+                onValueChange = onNominalChange,
+                label = { Text("Nominal Tagihan", fontSize = 12.sp) },
+                placeholder = { Text("Masukkan jumlah patungan") },
+                prefix = { Text("Rp ", fontWeight = FontWeight.Bold, color = Color.DarkGray) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                singleLine = true,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color(0xFF0A58CA),
+                    unfocusedBorderColor = Color.LightGray
+                )
             )
         }
     }
 }
 
+fun formatRupiahLocal(value: String): String {
+    if (value.isEmpty()) return ""
+    return try {
+        NumberFormat
+            .getNumberInstance(Locale("id", "ID"))
+            .format(value.toLong())
+    } catch (e: Exception) {
+        ""
+    }
+}
+
 @Composable
-fun FriendListItem(friend: FriendUser, isSelected: Boolean, onClick: () -> Unit) {
+fun FriendListItem(user: Users, isSelected: Boolean, onClick: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
             .clickable { onClick() }
-            .padding(vertical = 12.dp, horizontal = 8.dp)
+            .padding(vertical = 8.dp, horizontal = 4.dp)
     ) {
-        //Placeholder Avatar
         Box(
             modifier = Modifier
-                .size(48.dp)
+                .size(40.dp)
                 .background(Color(0xFFE0E0E0), CircleShape),
             contentAlignment = Alignment.Center
         ) {
             Icon(Icons.Default.Person, contentDescription = null, tint = Color.Gray)
         }
 
-        Spacer(modifier = Modifier.width(16.dp))
+        Spacer(modifier = Modifier.width(12.dp))
 
-        //Info User
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = friend.name, fontWeight = FontWeight.Bold, fontSize = 16.sp)
-            Text(text = friend.username, color = Color.Gray, fontSize = 14.sp)
+            Text(text = user.name, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+            Text(text = user.email, color = Color.Gray, fontSize = 12.sp)
         }
 
-        //Indikator terpilih
         if (isSelected) {
             Icon(
-                imageVector = Icons.Default.Check,
+                imageVector = Icons.Default.CheckCircle,
                 contentDescription = "Terpilih",
-                tint = Color(0xFF0A58CA)
+                tint = Color(0xFF0A58CA),
+                modifier = Modifier.size(22.dp)
             )
         } else {
             Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .background(Color.Transparent, CircleShape)
+                    .size(22.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFFE0E0E0))
             )
         }
     }
