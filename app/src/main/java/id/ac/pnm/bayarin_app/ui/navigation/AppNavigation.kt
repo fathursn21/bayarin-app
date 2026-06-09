@@ -58,10 +58,6 @@ fun AppNavigation(){
         composable(Routes.TAMBAH_GROUP) {
             TambahGroupScreen(
                 onNavigateBack = { navController.popBackStack() },
-                onGroupCreated = { groupName, members ->
-                    // TODO: Simpan ke Firebase/Room
-                    navController.popBackStack()
-                }
             )
         }
         composable(Routes.DAFTAR_TEMAN) {
