@@ -494,6 +494,7 @@ fun getCategoryIcon(category: String): ImageVector {
         "Transport" -> Icons.Default.Place
         "Hiburan" -> Icons.Default.Face
         "Kos" -> Icons.Default.Home
+        "Group" -> Icons.Default.Person
         else -> Icons.Default.Add
     }
 }
