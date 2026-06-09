@@ -3,6 +3,8 @@ package id.ac.pnm.bayarin_app.ui.home
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import id.ac.pnm.bayarin_app.ContextApplication
 import id.ac.pnm.bayarin_app.data.AppDatabase
 import id.ac.pnm.bayarin_app.data.repository.NotesRepository
@@ -27,7 +29,9 @@ class HomeViewModel : ViewModel() {
     }
 
     private fun observeNotes() {
-        repository.getAllNotes(0)
+        val uid = Firebase.auth.currentUser?.uid ?: ""
+
+        repository.getAllNotes(limit=0,uid= uid)
             .onEach { notes ->
 
                 Log.d("SUMMARY", "total notes = ${notes.size}")

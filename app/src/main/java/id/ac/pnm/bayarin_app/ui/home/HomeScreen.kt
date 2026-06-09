@@ -146,7 +146,20 @@ fun HomeScreen(
                 newNotesUiState.error != "" -> {
                     item { Text(newNotesUiState.error) }
                 } else -> {
+
+                    if (newNotesUiState.notes.size == 0){
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth().padding(top = 40.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text("Kamu belum mencatat apapun", color = Color.Gray, fontSize = 14.sp)
+                            }
+                        }
+                    }
+
                     items(newNotesUiState.notes){ notes ->
+
                         TransactionItem(
                             title = notes.category,
                             time = formatDate(notes.date),
@@ -481,6 +494,7 @@ fun getCategoryIcon(category: String): ImageVector {
         "Transport" -> Icons.Default.Place
         "Hiburan" -> Icons.Default.Face
         "Kos" -> Icons.Default.Home
+        "Group" -> Icons.Default.Person
         else -> Icons.Default.Add
     }
 }

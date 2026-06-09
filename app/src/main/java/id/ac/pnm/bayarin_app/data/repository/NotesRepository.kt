@@ -27,11 +27,11 @@ class NotesRepository(
         notesDao.insert(notes)
     }
 
-    fun getAllNotes(limit : Int): Flow<List<Notes>> {
+    fun getAllNotes(limit : Int, uid : String): Flow<List<Notes>> {
         if (limit == 0){
-            return notesDao.getAllNotes()
+            return notesDao.getAllNotes(userId = uid)
         } else {
-            return notesDao.getLimitNotes(limit)
+            return notesDao.getLimitNotes(limit = limit, userId = uid)
         }
     }
 
@@ -61,6 +61,7 @@ class NotesRepository(
             notesDao.insert(
                 note.copy(
                     id = item.key ?: "",
+                    userId = uid,
                     isSynced = 1
                 )
             )

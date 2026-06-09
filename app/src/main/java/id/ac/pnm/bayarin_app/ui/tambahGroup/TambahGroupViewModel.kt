@@ -9,7 +9,11 @@ import androidx.lifecycle.viewModelScope
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
+import id.ac.pnm.bayarin_app.ContextApplication
+import id.ac.pnm.bayarin_app.data.AppDatabase
+import id.ac.pnm.bayarin_app.data.model.Notes
 import id.ac.pnm.bayarin_app.data.model.Users
+import id.ac.pnm.bayarin_app.data.repository.NotesRepository
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +22,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.UUID
 
 private const val TAG = "TambahGroupViewModel"
 
@@ -30,8 +37,18 @@ class TambahGroupViewModel : ViewModel() {
     private val _uiState = MutableStateFlow(TambahGroupUiState())
     val uiState: StateFlow<TambahGroupUiState> = _uiState.asStateFlow()
 
+    private val roomDb = AppDatabase.getDatabase(ContextApplication.instance)
+    private val notesRepository = NotesRepository(
+        roomDb.notesDao()
+    )
+
     var searchQuery by mutableStateOf("")
         private set
+
+    val formatter = SimpleDateFormat(
+        "dd MMMM yyyy",
+        Locale("id", "ID")
+    )
 
     init {
         loadActualFriends()
@@ -123,6 +140,8 @@ class TambahGroupViewModel : ViewModel() {
                 membersMap[currentUid] = 0L
                 selected.forEach { membersMap[it.id] = nominals[it.id] ?: 0L }
 
+                val totalNominal = nominals.values.sum()
+
                 val groupData = hashMapOf(
                     "id" to groupId,
                     "name" to groupName,
@@ -139,6 +158,21 @@ class TambahGroupViewModel : ViewModel() {
                 }
 
                 dbRef.updateChildren(updates).await()
+
+                val notes = Notes(
+                    id = UUID.randomUUID().toString(),
+                    userId = currentUid,
+                    expense = true,
+                    nominal = totalNominal,
+                    category = "Group",
+                    date = System.currentTimeMillis(),
+                    note = groupName,
+                    createdAt = System.currentTimeMillis(),
+                    isSynced = 0
+                )
+
+                notesRepository.createNotes(notes)
+
                 _uiState.update { it.copy(isCreatingGroup = false, isSuccess = true) }
 
             } catch (e: Exception) {
