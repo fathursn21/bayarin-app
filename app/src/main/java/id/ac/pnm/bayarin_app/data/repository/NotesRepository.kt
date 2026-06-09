@@ -75,7 +75,7 @@ class NotesRepository(
 
                 db.reference
                     .child("notes")
-                    .child(uid)
+                    .child(note.userId)
                     .child(note.id)
                     .setValue(
                         note.copy(
