@@ -1,13 +1,17 @@
-package com.example.unscramble.data
+package id.ac.pnm.bayarin_app.data
 
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import id.ac.pnm.bayarin_app.data.dao.NotesDao
+import id.ac.pnm.bayarin_app.data.model.Notes
+import kotlin.also
+import kotlin.jvm.java
 
-@Database(entities = [WordsModel::class], version = 2)
+@Database(entities = [Notes::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun WordsDao() : WordsDao
+    abstract fun notesDao() : NotesDao
 
     companion object {
         @Volatile
@@ -16,7 +20,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun getDatabase(applicationContext : Context) : AppDatabase {
             return INSTANCE ?: Room.databaseBuilder(
                 applicationContext,
-                AppDatabase::class.java, "words_database"
+                AppDatabase::class.java, "bayarin_app"
             )
 //                .fallbackToDestructiveMigration()
                 .build()

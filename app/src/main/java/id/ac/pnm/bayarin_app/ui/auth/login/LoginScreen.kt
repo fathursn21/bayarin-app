@@ -21,15 +21,27 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun LoginScreen(navController: NavController) {
-    var email by remember { mutableStateOf("") }
-    var password by remember { mutableStateOf("") }
-    var passwordVisible by remember { mutableStateOf(false) }
+fun LoginScreen(
+    navController: NavController,
+    loginViewModel: LoginViewModel = viewModel()
+) {
+    val loginUiState by loginViewModel.uiState.collectAsState()
+
+    if (loginUiState.isLoginSuccess) {
+
+        navController.navigate(Routes.HOME) {
+            popUpTo(Routes.LOGIN) {
+                inclusive = true
+            }
+            launchSingleTop = true
+        }
+    }
 
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(Color(0xFFEBF4FA), Color.White),
@@ -97,8 +109,8 @@ fun LoginScreen(navController: NavController) {
                     Text(text = "Email", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        value = email,
-                        onValueChange = { email = it },
+                        value = loginViewModel.userTypeUsername,
+                        onValueChange = { loginViewModel.updateTypeUsername(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -128,8 +140,8 @@ fun LoginScreen(navController: NavController) {
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     TextField(
-                        value = password,
-                        onValueChange = { password = it },
+                        value = loginViewModel.userTypePassword,
+                        onValueChange = { loginViewModel.updateTypePassword(it) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
                         colors = TextFieldDefaults.colors(
@@ -145,14 +157,14 @@ fun LoginScreen(navController: NavController) {
                             Text("••••••••", color = Color(0xFFBDBDBD), fontSize = 14.sp)
                         },
                         singleLine = true,
-                        visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                        visualTransformation = if (loginUiState.passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
                     Button(
-                        onClick = { },
+                        onClick = { loginViewModel.loginUser(loginViewModel.userTypeUsername, loginViewModel.userTypePassword) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(50.dp),
