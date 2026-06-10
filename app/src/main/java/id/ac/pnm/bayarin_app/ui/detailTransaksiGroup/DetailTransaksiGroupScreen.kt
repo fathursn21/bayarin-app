@@ -110,41 +110,46 @@ fun DetailTransaksiGroupScreen(
             )
         },
         bottomBar = {
-            // Tombol Kirim Pengingat di Bagian Bawah
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = Color.Transparent
-            ) {
-                Button(
-                    onClick = { viewModel.kirimPengingatGrup() },
-                    enabled = !uiState.isLoading && uiState.memberBills.any { it.status == BillStatus.BELUM_BAYAR },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                        .height(50.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFD0E1FD),
-                        disabledContainerColor = Color.LightGray
-                    ),
-                    shape = RoundedCornerShape(percent = 50)
+            //hanya admin
+            if (uiState.isCreator) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = Color.Transparent
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
+                    Button(
+                        onClick = { viewModel.kirimPengingatGrup() },
+                        // Tombol aktif selama masih ada yang belum lunas
+                        enabled = !uiState.isLoading && uiState.memberBills.any {
+                            it.status == BillStatus.BELUM_BAYAR || it.status == BillStatus.PENGINGAT_TERKIRIM
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                            .height(50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFD0E1FD),
+                            disabledContainerColor = Color.LightGray
+                        ),
+                        shape = RoundedCornerShape(percent = 50)
                     ) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = null,
-                            tint = Color(0xFF0056D2),
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = "Kirim Pengingat Ke Group",
-                            color = Color(0xFF0056D2),
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = null,
+                                tint = Color(0xFF0056D2),
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Kirim Pengingat Ke Group",
+                                color = Color(0xFF0056D2),
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -324,10 +329,9 @@ fun MemberBillItemRow(
     isCreator: Boolean,
     onMarkAsPaid: () -> Unit
 ) {
-    // State untuk memunculkan dialog konfirmasi pembayaran
+    //muncul dialog konfirmasi
     var showConfirmDialog by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
-
-    // Dialog Konfirmasi Lunas
+    //dialog Konfirmasi Lunas
     if (showConfirmDialog) {
         AlertDialog(
             onDismissRequest = { showConfirmDialog = false },
@@ -379,7 +383,6 @@ fun MemberBillItemRow(
             Spacer(modifier = Modifier.width(16.dp))
 
             Column(modifier = Modifier.weight(1f)) {
-
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = bill.name,
@@ -387,14 +390,10 @@ fun MemberBillItemRow(
                         fontSize = 15.sp,
                         color = Color.Black
                     )
-
-                    // Munculkan label Admin jika dia adalah pembuat grup
+                    //label admin
                     if (bill.isAdmin) {
                         Spacer(modifier = Modifier.width(6.dp))
-                        Surface(
-                            shape = RoundedCornerShape(4.dp),
-                            color = BlueLight
-                        ) {
+                        Surface(shape = RoundedCornerShape(4.dp), color = BlueLight) {
                             Text(
                                 text = "Admin",
                                 color = BluePrimary,
@@ -421,9 +420,19 @@ fun MemberBillItemRow(
 
                     Spacer(modifier = Modifier.height(8.dp))
 
-                    // Icon Status Pembayaran
-                    when (bill.status) {
-                        BillStatus.BELUM_BAYAR -> {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (bill.status == BillStatus.SUDAH_BAYAR) {
+                            Surface(shape = RoundedCornerShape(percent = 50), color = BluePrimary) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(imageVector = Icons.Default.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(12.dp))
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Sudah bayar", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                }
+                            }
+                        } else {
                             Surface(
                                 shape = RoundedCornerShape(percent = 50),
                                 color = Color(0xFFFFEBEE),
@@ -433,65 +442,29 @@ fun MemberBillItemRow(
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Close,
-                                        contentDescription = null,
-                                        tint = Color(0xFFD32F2F),
-                                        modifier = Modifier.size(12.dp)
-                                    )
+                                    Icon(imageVector = Icons.Default.Close, contentDescription = null, tint = Color(0xFFD32F2F), modifier = Modifier.size(12.dp))
                                     Spacer(modifier = Modifier.width(4.dp))
                                     Text("Belum bayar", color = Color(0xFFD32F2F), fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
-                        }
-                        BillStatus.PENGINGAT_TERKIRIM -> {
-                            Surface(
-                                shape = RoundedCornerShape(percent = 50),
-                                color = Color(0xFFE8F0FE),
-                                onClick = { if (isCreator) showConfirmDialog = true }
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
+
+                            if (bill.status == BillStatus.PENGINGAT_TERKIRIM) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Row(verticalAlignment = Alignment.CenterVertically) {
                                     Icon(
                                         imageVector = Icons.Default.Notifications,
                                         contentDescription = null,
                                         tint = BluePrimary,
-                                        modifier = Modifier.size(12.dp)
+                                        modifier = Modifier.size(14.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Pengingat terkirim", color = BluePrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                        }
-                        BillStatus.SUDAH_BAYAR -> {
-                            Surface(
-                                shape = RoundedCornerShape(percent = 50),
-                                color = BluePrimary
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Check,
-                                        contentDescription = null,
-                                        tint = Color.White,
-                                        modifier = Modifier.size(12.dp)
-                                    )
-                                    Spacer(modifier = Modifier.width(4.dp))
-                                    Text("Sudah bayar", color = Color.White, fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(2.dp))
+                                    Text(text = "Notifikasi terkirim", color = BluePrimary, fontSize = 11.sp, fontWeight = FontWeight.Bold)
                                 }
                             }
                         }
                     }
                 } else {
-                    Text(
-                        text = "Kembalikan uang saya",
-                        fontSize = 12.sp,
-                        color = TextGray
-                    )
+                    Text(text = "Kembalikan uang saya", fontSize = 12.sp, color = TextGray)
                 }
             }
         }
