@@ -2,17 +2,13 @@ package id.ac.pnm.bayarin_app.ui.auth.login
 
 import android.content.ContentValues.TAG
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.auth
-import id.ac.pnm.bayarin_app.ui.auth.register.RegisterUiState
-import id.ac.pnm.bayarin_app.ui.navigation.Routes
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -47,38 +43,63 @@ class LoginViewModel: ViewModel() {
     }
 
     fun loginUser(userUsername : String, userPassword : String){
-        if (userUsername.isNotEmpty() && userPassword.isNotEmpty()){
+        // 1. Reset state error sebelum mencoba login
+        _uiState.update { currentState ->
+            currentState.copy(
+                isInputUsernameEmpty = false,
+                isInputPasswordEmpty = false,
+                errorMessage = ""
+            )
+        }
 
-            auth = Firebase.auth
-
-            auth.signInWithEmailAndPassword(userUsername, userPassword).addOnCompleteListener { task ->
-                if (task.isSuccessful){
-                    Log.d(TAG, "signInWithEmail:success")
-
-                    _uiState.update { currentState ->
-                        currentState.copy(
-                            isLoginSuccess = true,
-                        )
-                    }
-
-                } else {
-                    Log.w(TAG, "signInWithEmail:failure", task.exception)
-                }
-            }
-
-        } else if (userUsername.isEmpty()){
-            _uiState.update { currentState ->
-                currentState.copy(isInputUsernameEmpty = true)
-            }
-        } else if (userPassword.isEmpty()) {
-            _uiState.update { currentState ->
-                currentState.copy(isInputPasswordEmpty = true)
-            }
-        } else {
+        // 2. PERTAHANAN LAPIS PERTAMA: Validasi Input Kosong
+        if (userUsername.isBlank() || userPassword.isBlank()){
             _uiState.update { currentState ->
                 currentState.copy(
-                    isInputUsernameEmpty = true,
-                    isInputPasswordEmpty = true
+                    isInputUsernameEmpty = userUsername.isBlank(),
+                    isInputPasswordEmpty = userPassword.isBlank(),
+                    errorMessage = "Email dan Password tidak boleh kosong!"
+                )
+            }
+            return // Hentikan eksekusi kode di sini, jangan kirim ke Firebase
+        }
+
+        // 3. PERTAHANAN LAPIS KEDUA: Try-Catch dan Firebase Handler
+        try {
+            auth = Firebase.auth
+            auth.signInWithEmailAndPassword(userUsername, userPassword)
+                .addOnCompleteListener { task ->
+                    if (task.isSuccessful){
+                        // Jika berhasil
+                        Log.d(TAG, "signInWithEmail:success")
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                isLoginSuccess = true,
+                                errorMessage = ""
+                            )
+                        }
+                    } else {
+                        // CATCH FIREBASE: Menangkap pesan error dari server (misal: sandi salah/email tidak ada)
+                        val exception = task.exception
+                        Log.w(TAG, "signInWithEmail:failure", exception)
+
+                        val errorMsg = exception?.localizedMessage ?: "Gagal login. Periksa kembali data Anda."
+
+                        _uiState.update { currentState ->
+                            currentState.copy(
+                                isLoginSuccess = false,
+                                errorMessage = errorMsg
+                            )
+                        }
+                    }
+                }
+        } catch (e: Exception) {
+            // CATCH SISTEM: Menangkap error tak terduga (misal aplikasi nge-crash saat mengolah data)
+            Log.e(TAG, "Login Error", e)
+            _uiState.update { currentState ->
+                currentState.copy(
+                    isLoginSuccess = false,
+                    errorMessage = e.localizedMessage ?: "Terjadi kesalahan sistem."
                 )
             }
         }
