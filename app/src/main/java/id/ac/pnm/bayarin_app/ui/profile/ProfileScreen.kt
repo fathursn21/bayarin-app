@@ -37,13 +37,11 @@ fun ProfileScreen(
 ) {
     val profileUiState by profileViewModel.uiState.collectAsState()
 
-    LaunchedEffect(profileUiState.isLogout) {
-        if (profileUiState.isLogout) {
-            navController.navigate(Routes.LOGIN) {
-                popUpTo(navController.graph.startDestinationId) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
+    if (profileUiState.isLogout) {
+        navController.navigate(Routes.LOGIN) {
+            popUpTo(navController.graph.startDestinationId) { saveState = true }
+            launchSingleTop = true
+            restoreState = true
         }
     }
 
