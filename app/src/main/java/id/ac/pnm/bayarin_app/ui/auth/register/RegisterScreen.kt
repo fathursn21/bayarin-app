@@ -260,6 +260,8 @@ fun RegisterScreen(
                     color = Color(0xFF2F80ED),
                     modifier = Modifier.clickable {navController.navigate(Routes.LOGIN)}
                 )
+
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }
