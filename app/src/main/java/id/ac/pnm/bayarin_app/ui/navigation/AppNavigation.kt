@@ -9,7 +9,9 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import id.ac.pnm.bayarin_app.ui.auth.login.LoginScreen
 import id.ac.pnm.bayarin_app.ui.auth.register.RegisterScreen
+import id.ac.pnm.bayarin_app.ui.daftarNotes.DaftarNotesScreen
 import id.ac.pnm.bayarin_app.ui.daftarTeman.DaftarTemanScreen
+import id.ac.pnm.bayarin_app.ui.detailNotes.DetailNotesScreen
 import id.ac.pnm.bayarin_app.ui.detailTransaksiGroup.DetailTransaksiGroupScreen
 import id.ac.pnm.bayarin_app.ui.profile.ProfileScreen
 import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
@@ -57,6 +59,26 @@ fun AppNavigation(){
 
         composable(Routes.NEW_NOTES) {
             NewNotesScreen(navController)
+        }
+
+        composable(Routes.DAFTAR_NOTES) {
+            DaftarNotesScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() },
+            )
+        }
+
+        composable(
+            route = "${Routes.DETAIL_NOTES}/{noteId}"
+        ) { backStackEntry ->
+
+            val noteId = backStackEntry.arguments?.getString("noteId") ?: ""
+
+            DetailNotesScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() },
+                noteId = noteId
+            )
         }
 
         composable(Routes.TAMBAH_GROUP) {

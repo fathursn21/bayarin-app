@@ -9,5 +9,6 @@ data class NewNotesUiState(
     val isSuccessfully : Boolean = false,
     val error : String = "",
     val notes: List<Notes> = emptyList(),
+    val detailNotes: Notes = Notes(),
     val isLoading : Boolean = false,
 )

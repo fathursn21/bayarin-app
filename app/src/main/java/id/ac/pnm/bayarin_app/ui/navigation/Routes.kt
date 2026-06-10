@@ -12,5 +12,6 @@ object Routes {
     const val TAMBAH_TEMAN = "tambah_teman"
     const val DAFTAR_TEMAN = "daftar_teman"
     const val DETAIL_TRANSAKSI_GROUP = "detail_transaksi_group"
-
+    const val DAFTAR_NOTES = "daftar_notes"
+    const val DETAIL_NOTES = "detail_notes"
 }

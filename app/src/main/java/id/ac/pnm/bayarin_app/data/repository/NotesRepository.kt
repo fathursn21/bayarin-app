@@ -35,6 +35,10 @@ class NotesRepository(
         }
     }
 
+    suspend fun getSelectedNotes(id : String) : Notes {
+        return notesDao.getSelectedNotes(id = id)
+    }
+
     suspend fun sync() {
         val uid = Firebase.auth.currentUser?.uid ?: ""
 
