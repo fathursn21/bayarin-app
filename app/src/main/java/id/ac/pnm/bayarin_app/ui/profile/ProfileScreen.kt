@@ -60,7 +60,7 @@ fun ProfileScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO */ }) {
+                    IconButton(onClick = {}) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications",
@@ -107,22 +107,6 @@ fun ProfileScreen(
                             fontSize = 40.sp,
                             fontWeight = FontWeight.Bold,
                             color = Color(0xFF5F6368)
-                        )
-                    }
-
-                    SmallFloatingActionButton(
-                        onClick = { /* TODO */ },
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .size(32.dp),
-                        shape = CircleShape,
-                        containerColor = Color(0xFF0D47A1),
-                        contentColor = Color.White
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Edit Profile",
-                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -185,14 +169,6 @@ fun ProfileScreen(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         thickness = 1.dp,
                         color = Color(0xFFF0F0F0)
-                    )
-
-                    // Menu 3: Pengaturan Akun
-                    MenuItem(
-                        icon = Icons.Default.Settings,
-                        iconTint = Color(0xFF5C6E9A),
-                        iconBgColor = Color(0xFFE8EDF4),
-                        title = "Pengaturan Akun"
                     )
                 }
             }
