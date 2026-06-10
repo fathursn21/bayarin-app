@@ -86,12 +86,45 @@ class NewNotesViewModel : ViewModel() {
         }
     }
 
-    fun loadNotes() {
+    fun loadDetailNotes(id : String) {
+
+        viewModelScope.launch {
+
+            _uiState.update {
+                it.copy(isLoading = true)
+            }
+
+            try {
+
+                val note = repository.getSelectedNotes(id)
+
+                _uiState.update {
+                    it.copy(
+                        detailNotes = note,
+                        isLoading = false,
+                        error = ""
+                    )
+                }
+
+            } catch (e: Exception) {
+
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        error = e.message ?: "Terjadi kesalahan"
+                    )
+                }
+
+            }
+        }
+    }
+
+    fun loadNotes(limit : Int = 10) {
         val uid = Firebase.auth.currentUser?.uid ?: return
 
         viewModelScope.launch {
 
-            repository.getAllNotes(limit = 10, uid = uid)
+            repository.getAllNotes(limit = limit, uid = uid)
                 .collect { notes ->
 
                     _uiState.update {

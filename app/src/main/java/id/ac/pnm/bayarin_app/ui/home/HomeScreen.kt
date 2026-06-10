@@ -134,7 +134,18 @@ fun HomeScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(text = "Riwayat Transaksi Terbaru", fontWeight = FontWeight.Medium, color = Color.DarkGray)
-                    Text(text = "Lihat Semua", color = BluePrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
+                    Text(
+                        text = "Lihat Semua",
+                        color = BluePrimary,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.clickable {
+                            navController.navigate(Routes.DAFTAR_NOTES) {
+                                popUpTo(navController.graph.startDestinationId) { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                    })
                 }
             }
 
@@ -161,11 +172,16 @@ fun HomeScreen(
                     items(newNotesUiState.notes){ notes ->
 
                         TransactionItem(
+                            id = notes.id,
                             title = notes.category,
                             time = formatDate(notes.date),
                             amount = formatRupiah(notes.nominal),
                             isIncome = !notes.expense,
-                            icon = getCategoryIcon(notes.category)
+                            icon = getCategoryIcon(notes.category),
+                            note = notes.note,
+                            onClick = { noteId ->
+                                navController.navigate("${Routes.DETAIL_NOTES}/$noteId")
+                            }
                         )
                     }
                 }
@@ -349,10 +365,22 @@ fun ExpenseChartCard() {
 }
 
 @Composable
-fun TransactionItem(title: String, time: String, amount: String, isIncome: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector) {
+fun TransactionItem(
+    id : String,
+    title: String,
+    time: String,
+    amount: String,
+    isIncome: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    note : String,
+    onClick: (String) -> Unit
+    ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
+            .clickable {
+                onClick(id)
+            }
             .padding(bottom = 0.dp),
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
@@ -378,7 +406,7 @@ fun TransactionItem(title: String, time: String, amount: String, isIncome: Boole
             }
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = title, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                Text(text = if (title == "Group") title + " " + note else title, fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
                 Text(text = time, color = TextGray, fontSize = 12.sp)
             }
             Text(
