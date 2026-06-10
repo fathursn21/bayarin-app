@@ -42,13 +42,8 @@ val ExpenseRed = Color(0xFFD32F2F)
 val ExpenseRedLight = Color(0xFFFFEBEE)
 val IncomeGreen = Color(0xFF34A853)
 val BadgeGreen = Color(0xFFE6F4EA)
-data class TransactionData(
-    val title: String,
-    val time: String,
-    val amount: String,
-    val isIncome: Boolean,
-    val icon: androidx.compose.ui.graphics.vector.ImageVector
-)
+
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,10 +117,17 @@ fun HomeScreen(
                 QuickActionsRow(
                     onAddFriendClick = {
                         navController.navigate(Routes.TAMBAH_TEMAN)
+                    },
+                    onCreateGroupClick = {
+                        navController.navigate(Routes.GROUP)
+                    },
+                    onReminderClick = {
+                        navController.navigate(Routes.REMINDER)
                     }
                 )
             }
-            item { ExpenseChartCard() }
+
+            item { ExpenseChartCard(statusRatio = homeUiState.ratio) }
 
             item {
                 Row(
@@ -195,7 +197,7 @@ fun HomeScreen(
 @Composable
 fun SummaryCard(
     income : Long = 0,
-    expense : Long = 0
+    expense : Long = 0,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -235,7 +237,9 @@ fun SummaryCard(
 
 @Composable
 fun QuickActionsRow(
-    onAddFriendClick: () -> Unit
+    onAddFriendClick: () -> Unit,
+    onCreateGroupClick: () -> Unit,
+    onReminderClick: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -249,12 +253,12 @@ fun QuickActionsRow(
         ActionItem(
             icon = Icons.Default.Person,
             title = "Buat\nGrup",
-            onClick = { /* TODO */ }
+            onClick = onCreateGroupClick
         )
         ActionItem(
             icon = Icons.Default.MailOutline,
             title = "Tagih\nTeman",
-            onClick = { /* TODO */ }
+            onClick = onReminderClick
         )
     }
 }
@@ -299,7 +303,28 @@ fun ActionItem(icon: androidx.compose.ui.graphics.vector.ImageVector, title: Str
 }
 
 @Composable
-fun ExpenseChartCard() {
+fun ExpenseChartCard(
+    statusRatio : ExpenseStatus,
+) {
+
+    val badgeColor = when (statusRatio) {
+        ExpenseStatus.HEMAT -> BadgeGreen
+        ExpenseStatus.CUKUP -> Color(0xFFFFF3CD)
+        ExpenseStatus.BOROS -> Color(0xFFFFE5E5)
+    }
+
+    val textColor = when (statusRatio) {
+        ExpenseStatus.HEMAT -> IncomeGreen
+        ExpenseStatus.CUKUP -> Color(0xFFFF9800)
+        ExpenseStatus.BOROS -> ExpenseRed
+    }
+
+    val statusText = when (statusRatio) {
+        ExpenseStatus.HEMAT -> "HEMAT"
+        ExpenseStatus.CUKUP -> "CUKUP"
+        ExpenseStatus.BOROS -> "BOROS"
+    }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
@@ -316,50 +341,14 @@ fun ExpenseChartCard() {
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
-                        .background(BadgeGreen)
+                        .background(badgeColor)
                         .padding(horizontal = 6.dp, vertical = 2.dp)
                 ) {
-                    Text(text = "HEMAT", color = IncomeGreen, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                    Text(text = statusText, color = textColor, fontSize = 10.sp, fontWeight = FontWeight.Bold)
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Text(text = "Detail", color = BluePrimary, fontSize = 14.sp, fontWeight = FontWeight.Medium)
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Canvas(modifier = Modifier
-                .fillMaxWidth()
-                .height(80.dp)) {
-                val path = Path()
-                val width = size.width
-                val height = size.height
-                val stepX = width / 5
-
-                path.moveTo(0f, height * 0.7f)
-                path.lineTo(stepX * 1, height * 0.4f)
-                path.lineTo(stepX * 2, height * 0.8f)
-                path.lineTo(stepX * 3, height * 0.1f)
-                path.lineTo(stepX * 4, height * 0.6f)
-                path.lineTo(width, height * 0.3f)
-
-                drawPath(
-                    path = path,
-                    color = BluePrimary,
-                    style = Stroke(width = 3.dp.toPx())
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text("M1", fontSize = 12.sp, color = TextGray)
-                Text("M2", fontSize = 12.sp, color = TextGray)
-                Text("M3", fontSize = 12.sp, color = TextGray)
-                Text("M4", fontSize = 12.sp, color = BluePrimary, fontWeight = FontWeight.Bold)
-                Text("M5", fontSize = 12.sp, color = TextGray)
-            }
         }
     }
 }

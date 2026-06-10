@@ -57,11 +57,44 @@ class HomeViewModel : ViewModel() {
                     .filter { it.expense }
                     .sumOf { it.nominal }
 
+                val status = calculateExpenseStatus(
+                    income = income,
+                    expense = expense,
+                )
+
                 _uiState.value = HomeUiState(
                     income = income,
-                    expense = expense
+                    expense = expense,
+                    ratio = status
                 )
             }
             .launchIn(viewModelScope)
+    }
+
+    fun calculateExpenseStatus(
+        income: Long,
+        expense: Long
+    ) : ExpenseStatus {
+
+        val status = if (income <= 0L) {
+
+            if (expense > 0)
+                ExpenseStatus.BOROS
+            else
+                ExpenseStatus.HEMAT
+
+        } else {
+
+            val ratio =
+                expense.toDouble() / income.toDouble() * 100
+
+            when {
+                ratio <= 50 -> ExpenseStatus.HEMAT
+                ratio <= 80 -> ExpenseStatus.CUKUP
+                else -> ExpenseStatus.BOROS
+            }
+        }
+
+        return status
     }
 }
