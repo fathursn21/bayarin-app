@@ -1,5 +1,10 @@
 package id.ac.pnm.bayarin_app.ui.reminder
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -12,51 +17,40 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import id.ac.pnm.bayarin_app.ui.navigation.Routes
 
+// --- Definisi Warna ---
 val BluePrimary = Color(0xFF0056D2)
 val BlueLightBg = Color(0xFFF4F7FC)
 val ExpenseRed = Color(0xFFC62828)
 val TextGray = Color(0xFF70757A)
 val TextDark = Color(0xFF0F172A)
 
-//warna tombol
 val WAGreenBg = Color(0xFFE8F5E9)
 val WAGreenText = Color(0xFF2E7D32)
 val NotifBlueBg = Color(0xFFE2EAFC)
 val NotifBlueText = Color(0xFF1E3A8A)
 val AvatarBg = Color(0xFFE2E8F0)
 
-data class ReminderData(
-    val name: String,
-    val initial: String,
-    val groupName: String,
-    val amount: String,
-    val time: String
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ReminderScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: ReminderViewModel = viewModel()
 ) {
-    //data dummy
-    val reminderList = listOf(
-        ReminderData("Mas Edwin", "M", "Kos Mojoarum", "Rp250.000", "2 hari yang lalu"),
-        ReminderData("Rusdi", "R", "Kopag Han...", "Rp45.000", "5 hari yang lalu"),
-        ReminderData("Agus Mas", "A", "Bundle Kur...", "Rp900.000", "5 hari yang lalu"),
-        ReminderData("Kevin Rafael", "K", "Project Kampus", "Rp75.000", "1 minggu yang lalu"),
-        ReminderData("Fathur", "F", "Patungan Futsal", "Rp20.000", "2 minggu yang lalu")
-    )
+    val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
         containerColor = BlueLightBg,
@@ -86,41 +80,69 @@ fun ReminderScreen(
             ReminderBottomNavBar(navController)
         }
     ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
-        ) {
-            item {
-                Column(modifier = Modifier.padding(bottom = 8.dp)) {
-                    Text(
-                        text = "Pengingat",
-                        fontWeight = FontWeight.ExtraBold,
-                        fontSize = 28.sp,
-                        color = TextDark
-                    )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Kirim notifikasi ke teman mu yang nunggak",
-                        color = TextGray,
-                        fontSize = 14.sp
-                    )
+        when (uiState) {
+            is ReminderUiState.Loading -> {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = BluePrimary)
                 }
             }
+            is ReminderUiState.Error -> {
+                val message = (uiState as ReminderUiState.Error).message
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(text = "Error: $message", color = ExpenseRed)
+                }
+            }
+            is ReminderUiState.Success -> {
+                val reminderList = (uiState as ReminderUiState.Success).reminders
 
-            //daftar pengingat
-            items(reminderList) { reminder ->
-                ReminderCardItem(reminder = reminder)
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                    contentPadding = PaddingValues(top = 8.dp, bottom = 24.dp)
+                ) {
+                    item {
+                        Column(modifier = Modifier.padding(bottom = 8.dp)) {
+                            Text(
+                                text = "Pengingat",
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 28.sp,
+                                color = TextDark
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Kirim notifikasi ke teman mu yang nunggak",
+                                color = TextGray,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+
+                    items(reminderList) { reminder ->
+                        ReminderCardItem(
+                            reminder = reminder,
+                            onWhatsAppClick = { context ->
+                                val formattedPhone = viewModel.formatPhoneForWhatsApp(reminder.telp)
+                                val message = "Halo ${reminder.name}, ngingetin aja nih buat tagihan di grup ${reminder.groupName} sebesar ${reminder.amount} \n \nSegera dibayar ya!"
+                                openWhatsApp(context, formattedPhone, message)
+                            }
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun ReminderCardItem(reminder: ReminderData) {
+fun ReminderCardItem(
+    reminder: ReminderData,
+    onWhatsAppClick: (Context) -> Unit
+) {
+    val context = LocalContext.current
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = Color.White),
@@ -128,13 +150,13 @@ fun ReminderCardItem(reminder: ReminderData) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.5.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            //Info Profil & Tagihan
+            // Info Profil & Tagihan
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                //Avatar + Nama + Grup
+                // Avatar + Nama + Grup
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Box(
                         modifier = Modifier
@@ -176,7 +198,7 @@ fun ReminderCardItem(reminder: ReminderData) {
                     }
                 }
 
-                //Nominal & Waktu
+                // Nominal & Waktu
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = reminder.amount,
@@ -199,18 +221,18 @@ fun ReminderCardItem(reminder: ReminderData) {
                 color = BlueLightBg
             )
 
-            //Tombol WhatsApp & Notifikasi
+            // Tombol WhatsApp & Notifikasi
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                //WhatsApp
+                // WhatsApp
                 Row(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .background(WAGreenBg)
-                        .clickable { /* TODO: Buka WA */ }
+                        .clickable { onWhatsAppClick(context) }
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -230,13 +252,13 @@ fun ReminderCardItem(reminder: ReminderData) {
                     )
                 }
 
-                //Kirim Notifikasi
+                // Kirim Notifikasi
                 Row(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .background(NotifBlueBg)
-                        .clickable { /*Notifikasi*/ }
+                        .clickable { /* TODO: Notifikasi Internal */ }
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
@@ -261,9 +283,7 @@ fun ReminderCardItem(reminder: ReminderData) {
 }
 
 @Composable
-fun ReminderBottomNavBar(
-    navController: NavController
-) {
+fun ReminderBottomNavBar(navController: NavController) {
     NavigationBar(
         containerColor = Color.White,
         tonalElevation = 8.dp
@@ -327,5 +347,19 @@ fun ReminderBottomNavBar(
                 }
             }
         )
+    }
+}
+
+//membuka WhatsApp
+fun openWhatsApp(context: Context, phone: String, message: String) {
+    val url = "https://api.whatsapp.com/send?phone=$phone&text=${Uri.encode(message)}"
+    val intent = Intent(Intent.ACTION_VIEW).apply {
+        data = Uri.parse(url)
+    }
+
+    try {
+        context.startActivity(intent)
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "Aplikasi WhatsApp tidak ditemukan", Toast.LENGTH_SHORT).show()
     }
 }

@@ -501,5 +501,5 @@ fun MemberBillItemRow(
 fun formatRupiah(value: Long): String {
     val localeID = Locale("id", "ID")
     val formatter = NumberFormat.getNumberInstance(localeID)
-    return "Rp ${formatter.format(value)}"
+    return "Rp${formatter.format(value)}"
 }
