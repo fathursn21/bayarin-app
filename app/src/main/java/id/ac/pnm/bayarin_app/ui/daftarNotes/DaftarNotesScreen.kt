@@ -178,7 +178,7 @@ fun ReminderBottomNavBar(
         NavigationBarItem(
             icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
             label = { Text("Home") },
-            selected = false,
+            selected = true,
             onClick = {
                 navController.navigate(Routes.HOME) {
                     popUpTo(navController.graph.startDestinationId) { saveState = true }
@@ -214,7 +214,7 @@ fun ReminderBottomNavBar(
         NavigationBarItem(
             icon = { Icon(Icons.Default.DateRange, contentDescription = "Pengingat") },
             label = { Text("Pengingat") },
-            selected = true,
+            selected = false,
             onClick = { /* TODO */ },
             colors = NavigationBarItemDefaults.colors(
                 selectedIconColor = BluePrimary,
