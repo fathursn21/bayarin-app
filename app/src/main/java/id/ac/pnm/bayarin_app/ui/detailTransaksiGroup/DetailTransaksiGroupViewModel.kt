@@ -200,8 +200,8 @@ class DetailTransaksiGroupViewModel : ViewModel() {
                 val updates = hashMapOf<String, Any>()
 
                 currentBills.forEach { member ->
-                    // Hanya kirim notifikasi ke anggota yang statusnya BELUM_BAYAR & bukan diri sendiri
-                    if (member.status == BillStatus.BELUM_BAYAR && member.id != currentUid) {
+                    // PERBAIKAN: Kirim ke semua anggota yang belum lunas (BELUM_BAYAR maupun PENGINGAT_TERKIRIM)
+                    if (member.status != BillStatus.SUDAH_BAYAR && member.id != currentUid) {
 
                         // Generate ID unik untuk notifikasi baru
                         val notifId = dbRef.child("users").child(member.id).child("notifications").push().key.orEmpty()

@@ -1,14 +1,18 @@
 package id.ac.pnm.bayarin_app
 
+import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
@@ -23,9 +27,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         listenForPushNotifications(this)
+        askNotificationPermission()
 
         setContent {
             AppNavigation()
+        }
+    }
+
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            //kosongin aja
+        } else {
+            //kosongin aja
+        }
+    }
+
+    private fun askNotificationPermission() {
+        // Pop-up izin hanya untuk Android 13 Tiramisu ke atas
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) {
+                //sudah tidak perlu pop-up
+            } else {
+                //pop-up muncul
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 
