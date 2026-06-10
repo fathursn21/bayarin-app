@@ -12,6 +12,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -36,6 +39,7 @@ fun ProfileScreen(
     profileViewModel: ProfileViewModel = viewModel(),
 ) {
     val profileUiState by profileViewModel.uiState.collectAsState()
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     if (profileUiState.isLogout) {
         navController.navigate(Routes.LOGIN) {
@@ -58,7 +62,7 @@ fun ProfileScreen(
                     )
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = {navController.navigate(Routes.NOTIFIKASI)}) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Notifications",
@@ -187,12 +191,47 @@ fun ProfileScreen(
                     title = "Keluar",
                     titleColor = Color(0xFFD32F2F),
                     showArrow = false,
-                    onClick = { profileViewModel.logout() }
+                    onClick = { showLogoutDialog = true }
                 )
             }
         }
     }
+
+    if (showLogoutDialog) {
+        AlertDialog(
+            onDismissRequest = { showLogoutDialog = false }, // Kalau user klik di luar kotak, tutup dialognya
+            title = {
+                Text(
+                    text = "Konfirmasi Keluar",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Text("Apakah Anda yakin ingin keluar dari akun ini?")
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showLogoutDialog = false
+                        profileViewModel.logout() // Eksekusi fungsi logout di sini!
+                    }
+                ) {
+                    Text("Ya, Keluar", color = Color(0xFFD32F2F), fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = { showLogoutDialog = false } // Batalkan dan tutup dialog
+                ) {
+                    Text("Batal", color = Color(0xFF1A1A1A))
+                }
+            },
+            containerColor = Color.White
+        )
+    }
+
 }
+
 
 // --- FUNGSI BANTUAN UNTUK ITEM MENU ---
 @Composable

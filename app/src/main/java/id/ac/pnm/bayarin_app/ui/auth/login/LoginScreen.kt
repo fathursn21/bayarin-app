@@ -119,6 +119,15 @@ fun LoginScreen(
                 ) {
                     Text(text = "Email", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color(0xFF1A1A1A))
                     Spacer(modifier = Modifier.height(8.dp))
+                    if (loginUiState.errorMessage.isNotEmpty()) {
+                        Text(
+                            text = loginUiState.errorMessage,
+                            color = Color.Red,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                    }
                     TextField(
                         value = loginViewModel.userTypeUsername,
                         onValueChange = { loginViewModel.updateTypeUsername(it) },
@@ -208,6 +217,8 @@ fun LoginScreen(
                     color = Color(0xFF2F80ED),
                     modifier = Modifier.clickable { navController.navigate(Routes.REGISTER) }
                 )
+
+                Spacer(modifier = Modifier.height(40.dp))
             }
         }
     }

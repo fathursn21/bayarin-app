@@ -60,19 +60,35 @@ class RegisterViewModel : ViewModel() {
 
     fun registerUser(userName: String, userEmail: String, userTelp: String, userPassword: String) {
 
+        // 1. Reset error dan mulai efek Loading
         _uiState.update { currentState ->
             currentState.copy(
-                isInputNameEmpty = userName.isEmpty(),
-                isInputEmailEmpty = userEmail.isEmpty(),
-                IsInputTelpEmpty = userTelp.isEmpty(),
-                IsInputPasswordEmpty = userPassword.isEmpty(),
+                isInputNameEmpty = false,
+                isInputEmailEmpty = false,
+                IsInputTelpEmpty = false,
+                IsInputPasswordEmpty = false,
                 errorMessage = "",
                 isLoading = true
             )
         }
 
-        if (userName.isNotEmpty() && userEmail.isNotEmpty() && userTelp.isNotEmpty() && userPassword.isNotEmpty()) {
+        // 2. PERTAHANAN LAPIS PERTAMA: Validasi Input (Menggunakan isBlank agar spasi ditolak)
+        if (userName.isBlank() || userEmail.isBlank() || userTelp.isBlank() || userPassword.isBlank()) {
+            _uiState.update { currentState ->
+                currentState.copy(
+                    isInputNameEmpty = userName.isBlank(),
+                    isInputEmailEmpty = userEmail.isBlank(),
+                    IsInputTelpEmpty = userTelp.isBlank(),
+                    IsInputPasswordEmpty = userPassword.isBlank(),
+                    errorMessage = "Semua kolom wajib diisi!",
+                    isLoading = false // Matikan loading karena gagal validasi
+                )
+            }
+            return // Hentikan eksekusi, jangan kirim data ke Firebase
+        }
 
+        // 3. PERTAHANAN LAPIS KEDUA: Try-Catch dan Firebase Handler
+        try {
             auth.createUserWithEmailAndPassword(userEmail, userPassword)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
@@ -92,21 +108,42 @@ class RegisterViewModel : ViewModel() {
                             if (dbTask.isSuccessful) {
                                 Log.d(TAG, "database.child:success")
 
-                                // Update state pindah ke Home
+                                // Berhasil semua! Update state pindah ke Home
                                 _uiState.update { it.copy(isRegisterSuccess = true, isLoading = false) }
                             } else {
-                                Log.w(TAG, "database.child:failure", dbTask.exception)
-                                _uiState.update { it.copy(errorMessage = "Gagal menyimpan data pengguna", isLoading = false) }
+                                // CATCH: Gagal menyimpan data ke database
+                                val dbException = dbTask.exception
+                                Log.w(TAG, "database.child:failure", dbException)
+                                _uiState.update {
+                                    it.copy(
+                                        errorMessage = dbException?.localizedMessage ?: "Gagal menyimpan data pengguna",
+                                        isLoading = false
+                                    )
+                                }
                             }
                         }
 
                     } else {
-                        Log.w(TAG, "createUserWithEmail:failure", task.exception)
-                        _uiState.update { it.copy(errorMessage = task.exception?.localizedMessage ?: "Pendaftaran gagal", isLoading = false) }
+                        // CATCH: Gagal membuat akun (misal email sudah dipakai, password kurang dari 6 huruf)
+                        val authException = task.exception
+                        Log.w(TAG, "createUserWithEmail:failure", authException)
+                        _uiState.update {
+                            it.copy(
+                                errorMessage = authException?.localizedMessage ?: "Pendaftaran gagal. Coba email lain.",
+                                isLoading = false
+                            )
+                        }
                     }
                 }
-        } else {
-            _uiState.update { it.copy(isLoading = false) }
+        } catch (e: Exception) {
+            // CATCH SISTEM: Menangkap error tak terduga (crash)
+            Log.e(TAG, "Register Error", e)
+            _uiState.update {
+                it.copy(
+                    errorMessage = e.localizedMessage ?: "Terjadi kesalahan sistem saat mendaftar.",
+                    isLoading = false
+                )
+            }
         }
     }
 }
