@@ -1,0 +1,100 @@
+package id.ac.pnm.bayarin_app.ui.home
+
+import android.util.Log
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
+import id.ac.pnm.bayarin_app.ContextApplication
+import id.ac.pnm.bayarin_app.data.AppDatabase
+import id.ac.pnm.bayarin_app.data.repository.NotesRepository
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import java.util.Calendar
+
+class HomeViewModel : ViewModel() {
+    private val _uiState = MutableStateFlow(HomeUiState())
+    val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
+
+    private val roomDb = AppDatabase.getDatabase(ContextApplication.instance)
+    private val repository = NotesRepository(
+        roomDb.notesDao()
+    )
+
+    init {
+        observeNotes()
+    }
+
+    private fun observeNotes() {
+        val uid = Firebase.auth.currentUser?.uid ?: ""
+
+        repository.getAllNotes(limit=0,uid= uid)
+            .onEach { notes ->
+
+                Log.d("SUMMARY", "total notes = ${notes.size}")
+
+                val calendar = Calendar.getInstance()
+                val currentMonth = calendar.get(Calendar.MONTH)
+                val currentYear = calendar.get(Calendar.YEAR)
+
+                val monthlyNotes = notes.filter { note ->
+
+                    val noteCalendar = Calendar.getInstance()
+                    noteCalendar.timeInMillis = note.date
+
+                    noteCalendar.get(Calendar.MONTH) == currentMonth &&
+                            noteCalendar.get(Calendar.YEAR) == currentYear
+                }
+
+                val income = monthlyNotes
+                    .filter { !it.expense }
+                    .sumOf { it.nominal }
+
+                val expense = monthlyNotes
+                    .filter { it.expense }
+                    .sumOf { it.nominal }
+
+                val status = calculateExpenseStatus(
+                    income = income,
+                    expense = expense,
+                )
+
+                _uiState.value = HomeUiState(
+                    income = income,
+                    expense = expense,
+                    ratio = status
+                )
+            }
+            .launchIn(viewModelScope)
+    }
+
+    fun calculateExpenseStatus(
+        income: Long,
+        expense: Long
+    ) : ExpenseStatus {
+
+        val status = if (income <= 0L) {
+
+            if (expense > 0)
+                ExpenseStatus.BOROS
+            else
+                ExpenseStatus.HEMAT
+
+        } else {
+
+            val ratio =
+                expense.toDouble() / income.toDouble() * 100
+
+            when {
+                ratio <= 50 -> ExpenseStatus.HEMAT
+                ratio <= 80 -> ExpenseStatus.CUKUP
+                else -> ExpenseStatus.BOROS
+            }
+        }
+
+        return status
+    }
+}
