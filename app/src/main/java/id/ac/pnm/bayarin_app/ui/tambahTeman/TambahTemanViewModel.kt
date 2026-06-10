@@ -131,11 +131,30 @@ class TambahTemanViewModel : ViewModel() {
 
         viewModelScope.launch {
             try {
+                //profil user sendiri terlebih dahulu untuk tahu nama pengirim notif
+                val myProfileSnapshot = dbRef.child("users").child(currentUid).get().await()
+                val myName = myProfileSnapshot.child("name").getValue(String::class.java) ?: "Seseorang"
+
                 val friendData = mapOf("addedAt" to ServerValue.TIMESTAMP)
+
+                //Generate ID Notifikasi untuk user target
+                val notifId = dbRef.child("users").child(targetUser.id).child("notifications").push().key.orEmpty()
+
+                //objek data notifikasi pertemanan baru
+                val notificationData = mapOf(
+                    "id" to notifId,
+                    "title" to "Pertemanan Baru",
+                    "message" to "$myName telah menambahkan Anda sebagai teman.",
+                    "timestamp" to System.currentTimeMillis(),
+                    "isRead" to false,
+                    "groupId" to ""
+                )
 
                 val updates = hashMapOf<String, Any>(
                     "/users/$currentUid/friends/${targetUser.id}" to friendData,
-                    "/users/${targetUser.id}/friends/$currentUid" to friendData
+                    "/users/${targetUser.id}/friends/$currentUid" to friendData,
+                    // Masukkan notifikasi ke akun teman yang ditambahkan
+                    "/users/${targetUser.id}/notifications/$notifId" to notificationData
                 )
 
                 dbRef.updateChildren(updates).await()
@@ -148,7 +167,7 @@ class TambahTemanViewModel : ViewModel() {
                         successMessage = "${targetUser.name} berhasil ditambahkan!"
                     )
                 }
-                Log.d(TAG, "tambahTeman: berhasil menambah ${targetUser.name}")
+                Log.d(TAG, "tambahTeman: berhasil menambah ${targetUser.name} dan mengirim notifikasi")
             } catch (e: Exception) {
                 Log.w(TAG, "tambahTeman: gagal", e)
                 _uiState.update {

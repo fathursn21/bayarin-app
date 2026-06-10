@@ -122,7 +122,7 @@ fun NewNotesScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { /* TODO: Notifikasi */ },
+                        onClick = { navController.navigate(Routes.NOTIFIKASI) },
                         modifier = Modifier.padding(end = 16.dp)
                     ) {
                         Icon(

@@ -17,6 +17,7 @@ import id.ac.pnm.bayarin_app.ui.profile.ProfileScreen
 import id.ac.pnm.bayarin_app.ui.newnotes.NewNotesScreen
 import id.ac.pnm.bayarin_app.ui.group.GroupScreen
 import id.ac.pnm.bayarin_app.ui.home.HomeScreen
+import id.ac.pnm.bayarin_app.ui.notification.NotificationScreen
 import id.ac.pnm.bayarin_app.ui.reminder.ReminderScreen
 import id.ac.pnm.bayarin_app.ui.tambahGroup.TambahGroupScreen
 import id.ac.pnm.bayarin_app.ui.tambahTeman.TambahTemanScreen
@@ -110,6 +111,12 @@ fun AppNavigation(){
             DetailTransaksiGroupScreen(
                 groupId = groupId,
                 navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Routes.NOTIFIKASI) {
+            NotificationScreen(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
