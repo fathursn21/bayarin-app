@@ -127,6 +127,11 @@ fun ReminderScreen(
                                 val formattedPhone = viewModel.formatPhoneForWhatsApp(reminder.telp)
                                 val message = "Halo ${reminder.name}, ngingetin aja nih buat tagihan di grup ${reminder.groupName} sebesar ${reminder.amount} \n \nSegera dibayar ya!"
                                 openWhatsApp(context, formattedPhone, message)
+                            },
+                            onNotifClick = { context ->
+                                viewModel.sendInternalNotification(reminder) {
+                                    Toast.makeText(context, "Notifikasi terkirim ke ${reminder.name}", Toast.LENGTH_SHORT).show()
+                                }
                             }
                         )
                     }
@@ -139,7 +144,8 @@ fun ReminderScreen(
 @Composable
 fun ReminderCardItem(
     reminder: ReminderData,
-    onWhatsAppClick: (Context) -> Unit
+    onWhatsAppClick: (Context) -> Unit,
+    onNotifClick: (Context) -> Unit
 ) {
     val context = LocalContext.current
 
@@ -252,13 +258,12 @@ fun ReminderCardItem(
                     )
                 }
 
-                // Kirim Notifikasi
                 Row(
                     modifier = Modifier
                         .weight(1f)
                         .clip(RoundedCornerShape(8.dp))
                         .background(NotifBlueBg)
-                        .clickable { /* TODO: Notifikasi Internal */ }
+                        .clickable { onNotifClick(context) }
                         .padding(vertical = 10.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically

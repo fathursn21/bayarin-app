@@ -199,33 +199,38 @@ class DetailTransaksiGroupViewModel : ViewModel() {
             try {
                 val updates = hashMapOf<String, Any>()
 
-//                currentBills.forEach { member ->
-//                    // Hanya kirim notifikasi ke anggota yang statusnya BELUM_BAYAR & bukan diri sendiri
-//                    if (member.status == BillStatus.BELUM_BAYAR && member.id != currentUid) {
-//
-//                        // Push ID Notifikasi Baru ke user target
-//                        val notifId = dbRef.child("users").child(member.id).child("notifications").push().key.orEmpty()
-////                        val notification = NotificationModel(
-////                            id = notifId,
-////                            title = "Tagihan Grup: $currentGroupName",
-////                            message = "Yuk bayar patungan grup sebesar Rp ${member.amount} ke pembayar grup.",
-////                            timestamp = System.currentTimeMillis(),
-////                            isRead = false
-////                        )
-//
-//                        // Update status pembayaran grup menjadi PENGINGAT_TERKIRIM
-//                        updates["/groups/$targetGroupId/statuses/${member.id}"] = BillStatus.PENGINGAT_TERKIRIM.name
-//                        updates["/users/${member.id}/notifications/$notifId"] = notification
-//                    }
-//                }
+                currentBills.forEach { member ->
+                    // Hanya kirim notifikasi ke anggota yang statusnya BELUM_BAYAR & bukan diri sendiri
+                    if (member.status == BillStatus.BELUM_BAYAR && member.id != currentUid) {
+
+                        // Generate ID unik untuk notifikasi baru
+                        val notifId = dbRef.child("users").child(member.id).child("notifications").push().key.orEmpty()
+
+                        // Buat objek notifikasi
+                        val notification = mapOf(
+                            "id" to notifId,
+                            "title" to "Tagihan Grup: $currentGroupName",
+                            "message" to "Yuk bayar patungan sebesar ${formatRupiah(member.amount)} ke admin grup.",
+                            "timestamp" to System.currentTimeMillis(),
+                            "isRead" to false,
+                            "groupId" to targetGroupId
+                        )
+
+                        // Update status grup menjadi PENGINGAT_TERKIRIM
+                        updates["/groups/$targetGroupId/statuses/${member.id}"] = BillStatus.PENGINGAT_TERKIRIM.name
+
+                        // Masukkan notifikasi ke path user penerima
+                        updates["/users/${member.id}/notifications/$notifId"] = notification
+                    }
+                }
 
                 if (updates.isNotEmpty()) {
-                    dbRef.updateChildren(updates).await()
+                    dbRef.updateChildren(updates).await() // Eksekusi update serentak
                     _uiState.update { it.copy(isReminderSuccess = true) }
                 }
 
             } catch (e: Exception) {
-                Log.w(TAG, "Girim pengingat gagal", e)
+                Log.w(TAG, "Kirim pengingat gagal", e)
                 _uiState.update { it.copy(errorMessage = "Gagal mengirim pengingat: ${e.message}") }
             }
         }
