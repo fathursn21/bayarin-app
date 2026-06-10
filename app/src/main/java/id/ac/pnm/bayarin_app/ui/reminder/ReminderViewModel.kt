@@ -35,7 +35,7 @@ class ReminderViewModel : ViewModel() {
             return
         }
 
-        //Ambil semua grup di mana pengguna saat ini adalah admin
+        //Ambil semua grup untuk pengguna status admin
         dbRef.child("groups").orderByChild("createdBy").equalTo(currentUid)
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -112,5 +112,39 @@ class ReminderViewModel : ViewModel() {
         val localeID = Locale("id", "ID")
         val formatter = NumberFormat.getNumberInstance(localeID)
         return "Rp${formatter.format(value)}"
+    }
+
+    fun sendInternalNotification(reminder: ReminderData, onSuccess: () -> Unit) {
+        //format id reminder "groupId_memberId"
+        val parts = reminder.id.split("_")
+        if (parts.size != 2) return
+
+        val groupId = parts[0]
+        val memberId = parts[1]
+
+        val dbRef = FirebaseDatabase.getInstance().reference
+
+        // Generate ID Notifikasi
+        val notifId = dbRef.child("users").child(memberId).child("notifications").push().key.orEmpty()
+
+        // Susun struktur data notifikasi
+        val notification = mapOf(
+            "id" to notifId,
+            "title" to "Tagihan Grup: ${reminder.groupName}",
+            "message" to "Yuk bayar patungan sebesar ${reminder.amount} ke admin grup.",
+            "timestamp" to System.currentTimeMillis(),
+            "isRead" to false,
+            "groupId" to groupId
+        )
+
+        //update ke semua anggota
+        val updates = hashMapOf<String, Any>()
+        updates["/groups/$groupId/statuses/$memberId"] = "PENGINGAT_TERKIRIM"
+        updates["/users/$memberId/notifications/$notifId"] = notification
+
+        // Eksekusi ke Firebase
+        dbRef.updateChildren(updates).addOnSuccessListener {
+            onSuccess()
+        }
     }
 }
